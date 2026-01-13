@@ -42,12 +42,33 @@ async function getDashboardStats() {
     .limit(5)
     .lean();
 
+  // Get recent reports with property names
+  const recentReports = await CleaningReport.find({ cleanerId: userId })
+    .sort({ date: -1 })
+    .limit(5)
+    .lean();
+
+  const propertyIds = [...new Set(recentReports.map(r => r.propertyId.toString()))];
+  const propertyList = await Property.find({ _id: { $in: propertyIds } })
+    .select("name")
+    .lean();
+  const propertyMap = new Map(propertyList.map(p => [p._id.toString(), p.name]));
+
+  const recentReportsWithNames = recentReports.map(r => ({
+    _id: r._id.toString(),
+    propertyName: propertyMap.get(r.propertyId.toString()) ?? "Unknown",
+    date: r.date,
+    itemCount: r.items.length,
+    totalRestocked: r.items.reduce((sum: number, i: { restockedAmount: number }) => sum + i.restockedAmount, 0),
+  }));
+
   return {
     totalItems,
     lowStockItems,
     properties,
     todayReports,
     lowStockItemsList,
+    recentReports: recentReportsWithNames,
   };
 }
 
@@ -146,6 +167,55 @@ export default async function DashboardPage() {
                 </div>
               ))}
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Recent Reports */}
+      {stats.recentReports.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-zinc-900">
+              <ClipboardCheck className="h-5 w-5" />
+              Recent Reports
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {stats.recentReports.map((report) => (
+                <div
+                  key={report._id}
+                  className="flex items-center justify-between rounded-lg border border-zinc-100 p-3"
+                >
+                  <div>
+                    <p className="font-medium text-zinc-900">{report.propertyName}</p>
+                    <p className="text-sm text-zinc-500">
+                      {new Date(report.date).toLocaleDateString("en-US", {
+                        weekday: "short",
+                        month: "short",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-zinc-600">{report.itemCount} items</p>
+                    {report.totalRestocked > 0 && (
+                      <p className="text-sm font-medium text-emerald-600">
+                        +{report.totalRestocked} restocked
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <a
+              href="/admin/reports"
+              className="mt-4 inline-block text-sm font-medium text-emerald-700 hover:text-emerald-800"
+            >
+              View all reports →
+            </a>
           </CardContent>
         </Card>
       )}

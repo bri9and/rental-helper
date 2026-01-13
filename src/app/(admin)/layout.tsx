@@ -1,8 +1,9 @@
-import { Package, LayoutDashboard, Home, Settings } from "lucide-react";
+import { Package, LayoutDashboard, Home, Settings, ClipboardList } from "lucide-react";
 import Link from "next/link";
 
 const navItems = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/admin/reports", label: "Reports", icon: ClipboardList },
   { href: "/admin/inventory", label: "Inventory", icon: Package },
   { href: "/admin/properties", label: "Properties", icon: Home },
 ];
