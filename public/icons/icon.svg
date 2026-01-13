@@ -1,0 +1,15 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" fill="#047857" rx="76"/>
+  <g transform="translate(102, 102)">
+    <!-- Box body -->
+    <rect x="0" y="92" width="308" height="216" fill="white" rx="20"/>
+    <!-- Box top flap left -->
+    <path d="M0 92 L154 0 L154 92 Z" fill="white" opacity="0.9"/>
+    <!-- Box top flap right -->
+    <path d="M154 0 L308 92 L308 92 L154 92 Z" fill="white" opacity="0.7"/>
+    <!-- Box tape vertical -->
+    <rect x="134" y="60" width="40" height="180" fill="#047857" opacity="0.3" rx="4"/>
+    <!-- Box tape horizontal -->
+    <rect x="80" y="160" width="148" height="32" fill="#047857" opacity="0.3" rx="4"/>
+  </g>
+</svg>
