@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { Plus, Package } from "lucide-react";
 import { Card, CardContent, Button } from "@/components/ui";
 import { getInventoryItems } from "@/lib/actions/inventory";

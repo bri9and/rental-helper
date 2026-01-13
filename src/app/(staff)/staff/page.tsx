@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { MapPin, ChevronRight, ClipboardList } from "lucide-react";
 import { Card, CardContent } from "@/components/ui";
 import dbConnect from "@/lib/db";

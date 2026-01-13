@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { Package, Home, AlertTriangle, ClipboardCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
 import { AISuggestions } from "@/components/admin/AISuggestions";

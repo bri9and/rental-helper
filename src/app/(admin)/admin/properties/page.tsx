@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { Plus, Home } from "lucide-react";
 import { Card, CardContent, Button } from "@/components/ui";
 import { getProperties } from "@/lib/actions/properties";
