@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { getInventoryItems } from "@/lib/actions/inventory";
 import { PropertyForm } from "../PropertyForm";
 

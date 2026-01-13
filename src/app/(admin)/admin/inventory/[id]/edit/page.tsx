@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { auth } from "@clerk/nextjs/server";
+import { getAuthUserId } from "@/lib/auth";
 import dbConnect from "@/lib/db";
 import WarehouseItem from "@/models/WarehouseItem";
 import { InventoryForm } from "../../InventoryForm";
@@ -11,7 +11,7 @@ interface EditInventoryPageProps {
 async function getItem(id: string) {
   await dbConnect();
 
-  const { userId } = await auth();
+  const userId = await getAuthUserId();
   if (!userId) {
     return null;
   }
