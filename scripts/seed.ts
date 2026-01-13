@@ -1,16 +1,20 @@
 import mongoose from 'mongoose';
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import { resolve } from 'path';
 
-// Load .env.local manually
-const envPath = resolve(process.cwd(), '.env.local');
-const envContent = readFileSync(envPath, 'utf-8');
-envContent.split('\n').forEach(line => {
-  const [key, ...valueParts] = line.split('=');
-  if (key && !key.startsWith('#')) {
-    process.env[key.trim()] = valueParts.join('=').trim();
+// Use MONGODB_URI env var if set, otherwise load from .env.local
+if (!process.env.MONGODB_URI) {
+  const envPath = resolve(process.cwd(), '.env.local');
+  if (existsSync(envPath)) {
+    const envContent = readFileSync(envPath, 'utf-8');
+    envContent.split('\n').forEach(line => {
+      const [key, ...valueParts] = line.split('=');
+      if (key && !key.startsWith('#')) {
+        process.env[key.trim()] = valueParts.join('=').trim();
+      }
+    });
   }
-});
+}
 
 const DEV_USER_ID = 'dev_user_123';
 
