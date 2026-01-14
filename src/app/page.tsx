@@ -8,10 +8,10 @@ export default function LandingPage() {
     <div className="min-h-screen bg-white">
       {/* Header */}
       <header className="fixed top-0 z-50 w-full border-b border-zinc-200 bg-white/80 backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-2">
-            <Image src="/logo.png" alt="Rental Helper" width={32} height={32} className="h-8 w-8" />
-            <span className="text-xl font-bold text-zinc-900">Rental Helper</span>
+        <div className="mx-auto flex h-24 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-1">
+            <Image src="/logo.png" alt="Rental Helper" width={84} height={84} className="h-[84px] w-[84px]" />
+            <span className="text-3xl font-black tracking-tight bg-gradient-to-r from-zinc-900 via-emerald-600 to-emerald-400 bg-clip-text text-transparent font-[var(--font-geist-sans)]">Rental Helper</span>
           </div>
           <nav className="flex items-center gap-6">
             <Link href="/pricing" className="text-sm font-medium text-zinc-600 hover:text-zinc-900 transition-colors">
@@ -24,7 +24,7 @@ export default function LandingPage() {
 
       {/* Hero Section */}
       <main>
-        <section className="relative overflow-hidden pt-16">
+        <section className="relative overflow-hidden pt-24">
           {/* Gradient Background */}
           <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 via-white to-white" />
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-emerald-100/50 rounded-full blur-3xl" />
@@ -251,9 +251,9 @@ export default function LandingPage() {
         <footer className="border-t border-zinc-200">
           <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
             <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-              <div className="flex items-center gap-2">
-                <Image src="/logo.png" alt="Rental Helper" width={24} height={24} className="h-6 w-6" />
-                <span className="text-lg font-semibold text-zinc-900">Rental Helper</span>
+              <div className="flex items-center gap-1">
+                <Image src="/logo.png" alt="Rental Helper" width={60} height={60} className="h-[60px] w-[60px]" />
+                <span className="text-2xl font-black tracking-tight bg-gradient-to-r from-zinc-900 via-emerald-600 to-emerald-400 bg-clip-text text-transparent font-[var(--font-geist-sans)]">Rental Helper</span>
               </div>
               <div className="text-sm text-zinc-500">
                 Built for short-term rental hosts
