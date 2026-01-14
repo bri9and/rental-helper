@@ -197,16 +197,6 @@ const inventoryItems = [
       { date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), amountUsed: 8 },
     ],
   },
-  {
-    ownerId: DEV_USER_ID,
-    name: 'Dildo',
-    sku: 'DILDO-001',
-    quantity: 10,
-    parLevel: 8,
-    lowStockThreshold: 4,
-    costPerUnit: 24.99,
-    burnRateHistory: [],
-  },
 ];
 
 const properties = [
@@ -226,7 +216,6 @@ const properties = [
       { itemSku: 'TRASH-001', parLevel: 2 },
       { itemSku: 'PTOWEL-001', parLevel: 2 },
       { itemSku: 'COFFEE-001', parLevel: 12 },
-      { itemSku: 'DILDO-001', parLevel: 1 },
     ],
   },
   {
@@ -245,7 +234,6 @@ const properties = [
       { itemSku: 'PTOWEL-001', parLevel: 1 },
       { itemSku: 'COFFEE-001', parLevel: 8 },
       { itemSku: 'LAUNDRY-001', parLevel: 4 },
-      { itemSku: 'DILDO-001', parLevel: 1 },
     ],
   },
   {
@@ -265,7 +253,6 @@ const properties = [
       { itemSku: 'PTOWEL-001', parLevel: 3 },
       { itemSku: 'COFFEE-001', parLevel: 20 },
       { itemSku: 'LAUNDRY-001', parLevel: 6 },
-      { itemSku: 'DILDO-001', parLevel: 1 },
     ],
   },
   {
@@ -281,7 +268,6 @@ const properties = [
       { itemSku: 'HTOWEL-001', parLevel: 2 },
       { itemSku: 'TRASH-001', parLevel: 1 },
       { itemSku: 'COFFEE-001', parLevel: 6 },
-      { itemSku: 'DILDO-001', parLevel: 1 },
     ],
   },
 ];
