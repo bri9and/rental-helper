@@ -1,17 +1,60 @@
 export const dynamic = 'force-dynamic';
 
-import { Package, Home, AlertTriangle, ClipboardCheck } from "lucide-react";
+import { Package, Home, AlertTriangle, Bell, RefreshCw, CheckCircle, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
-import { AISuggestions } from "@/components/admin/AISuggestions";
 import { SeedDemoButton } from "@/components/admin/SeedDemoButton";
+import { PropertyRestockCards } from "./PropertyRestockCards";
 import dbConnect from "@/lib/db";
 import WarehouseItem from "@/models/WarehouseItem";
 import Property from "@/models/Property";
 import CleaningReport from "@/models/CleaningReport";
+import SupplyRequest from "@/models/SupplyRequest";
 import { getAuthUserId } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 
-async function getDashboardStats() {
+export type PropertyStatus = {
+  _id: string;
+  name: string;
+  address?: string;
+  status: 'good' | 'low' | 'critical';
+  lastReport?: Date;
+  itemsNeedingRestock: number;
+  totalItems: number;
+  items: {
+    sku: string;
+    name: string;
+    currentCount: number;
+    parLevel: number;
+    warehouseQty: number;
+    image: string;
+  }[];
+};
+
+// Map SKUs to images
+function getItemImage(sku: string): string {
+  const imageMap: Record<string, string> = {
+    'TP-001': '/items/toilet-paper.png',
+    'SOAP-001': '/items/soap.png',
+    'SHAMP-001': '/items/shampoo.png',
+    'COND-001': '/items/conditioner.png',
+    'TOWEL-001': '/items/towel.png',
+    'HTOWEL-001': '/items/hand-towel.png',
+    'DISH-001': '/items/dish-soap.png',
+    'SPONGE-001': '/items/sponge.png',
+    'TRASH-001': '/items/trash-bag.png',
+    'PTOWEL-001': '/items/paper-towel.png',
+    'COFFEE-001': '/items/coffee.png',
+    'LAUNDRY-001': '/items/laundry.png',
+    'CLEAN-001': '/items/cleaner.png',
+    'GLASS-001': '/items/glass-cleaner.png',
+    'SHEET-Q01': '/items/sheets.png',
+    'FRESH-001': '/items/air-freshener.png',
+  };
+  return imageMap[sku] || '/items/default.png';
+}
+
+async function getManagerDashboard() {
   await dbConnect();
 
   const userId = await getAuthUserId();
@@ -19,234 +62,239 @@ async function getDashboardStats() {
     redirect("/");
   }
 
-  const [totalItems, lowStockItems, properties, todayReports] = await Promise.all([
-    WarehouseItem.countDocuments({ ownerId: userId }),
-    WarehouseItem.countDocuments({
-      ownerId: userId,
-      $expr: { $lte: ["$quantity", "$lowStockThreshold"] },
-    }),
-    Property.countDocuments({ ownerId: userId }),
-    CleaningReport.countDocuments({
-      cleanerId: userId,
-      date: {
-        $gte: new Date(new Date().setHours(0, 0, 0, 0)),
-        $lt: new Date(new Date().setHours(23, 59, 59, 999)),
-      },
-    }),
+  // Get all properties
+  const properties = await Property.find({ ownerId: userId }).lean();
+
+  // Get all warehouse items
+  const warehouseItems = await WarehouseItem.find({ ownerId: userId }).lean();
+  const itemMap = new Map(warehouseItems.map(i => [i.sku, i]));
+
+  // Get latest report for each property
+  const propertyIds = properties.map(p => p._id);
+  const latestReports = await CleaningReport.aggregate([
+    { $match: { propertyId: { $in: propertyIds } } },
+    { $sort: { date: -1 } },
+    { $group: { _id: "$propertyId", latestReport: { $first: "$$ROOT" } } }
   ]);
+  const reportMap = new Map(latestReports.map(r => [r._id.toString(), r.latestReport]));
 
-  const lowStockItemsList = await WarehouseItem.find({
+  // Get pending supply requests
+  const pendingRequests = await SupplyRequest.find({
     ownerId: userId,
-    $expr: { $lte: ["$quantity", "$lowStockThreshold"] },
-  })
-    .select("name sku quantity lowStockThreshold")
-    .limit(5)
-    .lean();
+    status: 'pending'
+  }).sort({ createdAt: -1 }).limit(5).lean();
 
-  // Get recent reports with property names
-  const recentReports = await CleaningReport.find({ cleanerId: userId })
-    .sort({ date: -1 })
-    .limit(5)
-    .lean();
+  // Build property status list
+  const propertyStatuses: PropertyStatus[] = properties.map(p => {
+    const settings = p.inventorySettings || [];
+    const latestReport = reportMap.get(p._id.toString());
 
-  const propertyIds = [...new Set(recentReports.map(r => r.propertyId.toString()))];
-  const propertyList = await Property.find({ _id: { $in: propertyIds } })
-    .select("name")
-    .lean();
-  const propertyMap = new Map(propertyList.map(p => [p._id.toString(), p.name]));
+    // Build items with current counts from last report
+    const items = settings.map(setting => {
+      const warehouseItem = itemMap.get(setting.itemSku);
+      const reportItem = latestReport?.items?.find((i: { sku: string }) => i.sku === setting.itemSku);
 
-  const recentReportsWithNames = recentReports.map(r => ({
-    _id: r._id.toString(),
-    propertyName: propertyMap.get(r.propertyId.toString()) ?? "Unknown",
-    date: r.date,
-    itemCount: r.items.length,
-    totalRestocked: r.items.reduce((sum: number, i: { restockedAmount: number }) => sum + i.restockedAmount, 0),
-  }));
+      // Current count = observed count from last report, or assume full (par level) if no report
+      const currentCount = reportItem ? reportItem.observedCount : setting.parLevel;
+
+      return {
+        sku: setting.itemSku,
+        name: warehouseItem?.name || 'Unknown Item',
+        currentCount,
+        parLevel: setting.parLevel,
+        warehouseQty: warehouseItem?.quantity || 0,
+        image: getItemImage(setting.itemSku),
+      };
+    });
+
+    // Count items needing restock (below 50% of par level)
+    const itemsNeedingRestock = items.filter(i => i.currentCount < i.parLevel * 0.5).length;
+
+    // Determine status
+    let status: 'good' | 'low' | 'critical' = 'good';
+    if (itemsNeedingRestock > 0) {
+      status = itemsNeedingRestock >= items.length * 0.5 ? 'critical' : 'low';
+    }
+
+    return {
+      _id: p._id.toString(),
+      name: p.name,
+      address: p.address,
+      status,
+      lastReport: latestReport?.date,
+      itemsNeedingRestock,
+      totalItems: items.length,
+      items,
+    };
+  });
+
+  // Sort by status (critical first, then low, then good)
+  propertyStatuses.sort((a, b) => {
+    const order = { critical: 0, low: 1, good: 2 };
+    return order[a.status] - order[b.status];
+  });
+
+  // Count warehouse low stock
+  const lowStockWarehouse = warehouseItems.filter(i => i.quantity <= i.lowStockThreshold).length;
 
   return {
-    totalItems,
-    lowStockItems,
-    properties,
-    todayReports,
-    lowStockItemsList,
-    recentReports: recentReportsWithNames,
+    properties: propertyStatuses,
+    pendingRequests: pendingRequests.map(r => ({
+      _id: r._id.toString(),
+      propertyName: r.propertyName,
+      itemName: r.itemName,
+      currentCount: r.currentCount,
+      createdAt: r.createdAt,
+    })),
+    stats: {
+      totalProperties: properties.length,
+      propertiesNeedingAttention: propertyStatuses.filter(p => p.status !== 'good').length,
+      pendingRequestsCount: pendingRequests.length,
+      lowStockWarehouse,
+    }
   };
 }
 
 export default async function DashboardPage() {
-  const stats = await getDashboardStats();
+  const data = await getManagerDashboard();
+
+  // Empty state
+  if (data.stats.totalProperties === 0) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-zinc-900">Welcome to Rental Helper</h1>
+          <p className="text-zinc-500">Get started by loading demo data or adding your properties</p>
+        </div>
+
+        <Card className="border-2 border-dashed border-zinc-200">
+          <CardContent className="flex flex-col items-center justify-center py-16">
+            <Home className="h-16 w-16 text-zinc-300 mb-4" />
+            <h3 className="text-xl font-semibold text-zinc-900 mb-2">No properties yet</h3>
+            <p className="text-zinc-500 text-center max-w-md mb-6">
+              Add your rental properties to start tracking inventory and restocking supplies.
+            </p>
+            <div className="flex gap-3">
+              <SeedDemoButton />
+              <Link
+                href="/admin/properties/new"
+                className="inline-flex h-10 items-center rounded-lg border border-zinc-200 bg-white px-4 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+              >
+                Add Property Manually
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-4 md:space-y-8">
+    <div className="space-y-6">
       {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-zinc-900">Property Dashboard</h1>
+          <p className="text-zinc-500">Manage restocking for your {data.stats.totalProperties} properties</p>
+        </div>
+      </div>
+
+      {/* Quick Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card className={data.stats.propertiesNeedingAttention > 0 ? "border-amber-200 bg-amber-50" : "border-emerald-200 bg-emerald-50"}>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              {data.stats.propertiesNeedingAttention > 0 ? (
+                <AlertTriangle className="h-8 w-8 text-amber-600" />
+              ) : (
+                <CheckCircle className="h-8 w-8 text-emerald-600" />
+              )}
+              <div>
+                <p className="text-2xl font-bold text-zinc-900">{data.stats.propertiesNeedingAttention}</p>
+                <p className="text-xs text-zinc-600">Need Attention</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <Home className="h-8 w-8 text-zinc-400" />
+              <div>
+                <p className="text-2xl font-bold text-zinc-900">{data.stats.totalProperties}</p>
+                <p className="text-xs text-zinc-600">Properties</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className={data.stats.pendingRequestsCount > 0 ? "border-blue-200 bg-blue-50" : ""}>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <Bell className="h-8 w-8 text-blue-500" />
+              <div>
+                <p className="text-2xl font-bold text-zinc-900">{data.stats.pendingRequestsCount}</p>
+                <p className="text-xs text-zinc-600">Supply Requests</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className={data.stats.lowStockWarehouse > 0 ? "border-rose-200 bg-rose-50" : ""}>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <Package className="h-8 w-8 text-rose-500" />
+              <div>
+                <p className="text-2xl font-bold text-zinc-900">{data.stats.lowStockWarehouse}</p>
+                <p className="text-xs text-zinc-600">Low in Warehouse</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Pending Supply Requests */}
+      {data.pendingRequests.length > 0 && (
+        <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-blue-800">
+              <Bell className="h-5 w-5" />
+              Cleaner Requests
+              <span className="ml-auto text-sm font-normal">
+                <Link href="/admin/supply-requests" className="text-blue-600 hover:underline">
+                  View all →
+                </Link>
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="space-y-2">
+              {data.pendingRequests.map((req) => (
+                <div key={req._id} className="flex items-center justify-between bg-white rounded-lg p-3 border border-blue-100">
+                  <div>
+                    <p className="font-medium text-zinc-900">{req.itemName}</p>
+                    <p className="text-sm text-zinc-500">{req.propertyName} • Only {req.currentCount} left</p>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-zinc-500">
+                    <Clock className="h-4 w-4" />
+                    {new Date(req.createdAt).toLocaleDateString()}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Property Cards - Main Focus */}
       <div>
-        <h1 className="text-xl md:text-2xl font-bold text-zinc-900">Dashboard</h1>
-        <p className="text-sm md:text-base text-zinc-500">Overview of your inventory and properties</p>
+        <h2 className="text-lg font-semibold text-zinc-900 mb-4 flex items-center gap-2">
+          <RefreshCw className="h-5 w-5" />
+          Properties
+        </h2>
+        <PropertyRestockCards properties={data.properties} />
       </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between p-3 pb-1 md:p-6 md:pb-2">
-            <CardTitle className="text-xs md:text-sm font-medium text-zinc-500">
-              Total Items
-            </CardTitle>
-            <Package className="h-4 w-4 md:h-5 md:w-5 text-zinc-400" />
-          </CardHeader>
-          <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
-            <div className="text-2xl md:text-3xl font-bold text-zinc-900">{stats.totalItems}</div>
-            <p className="text-xs text-zinc-500">in warehouse</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between p-3 pb-1 md:p-6 md:pb-2">
-            <CardTitle className="text-xs md:text-sm font-medium text-zinc-500">
-              Low Stock
-            </CardTitle>
-            <AlertTriangle className="h-4 w-4 md:h-5 md:w-5 text-rose-500" />
-          </CardHeader>
-          <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
-            <div className="text-2xl md:text-3xl font-bold text-rose-600">{stats.lowStockItems}</div>
-            <p className="text-xs text-zinc-500">need restocking</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between p-3 pb-1 md:p-6 md:pb-2">
-            <CardTitle className="text-xs md:text-sm font-medium text-zinc-500">
-              Properties
-            </CardTitle>
-            <Home className="h-4 w-4 md:h-5 md:w-5 text-zinc-400" />
-          </CardHeader>
-          <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
-            <div className="text-2xl md:text-3xl font-bold text-zinc-900">{stats.properties}</div>
-            <p className="text-xs text-zinc-500">locations</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between p-3 pb-1 md:p-6 md:pb-2">
-            <CardTitle className="text-xs md:text-sm font-medium text-zinc-500">
-              Today
-            </CardTitle>
-            <ClipboardCheck className="h-4 w-4 md:h-5 md:w-5 text-zinc-400" />
-          </CardHeader>
-          <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
-            <div className="text-2xl md:text-3xl font-bold text-zinc-900">{stats.todayReports}</div>
-            <p className="text-xs text-zinc-500">reports</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Low Stock Alert Section */}
-      {stats.lowStockItems > 0 && (
-        <Card className="border-rose-200 bg-rose-50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-rose-700">
-              <AlertTriangle className="h-5 w-5" />
-              Low Stock Alert
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {stats.lowStockItemsList.map((item) => (
-                <div
-                  key={item.sku}
-                  className="flex items-center justify-between rounded-lg bg-white p-3"
-                >
-                  <div>
-                    <p className="font-medium text-zinc-900">{item.name}</p>
-                    <p className="text-sm text-zinc-500">SKU: {item.sku}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-lg font-bold text-rose-600">{item.quantity}</p>
-                    <p className="text-xs text-zinc-500">
-                      of {item.lowStockThreshold} min
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Recent Reports */}
-      {stats.recentReports.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-zinc-900">
-              <ClipboardCheck className="h-5 w-5" />
-              Recent Reports
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {stats.recentReports.map((report) => (
-                <div
-                  key={report._id}
-                  className="flex items-center justify-between rounded-lg border border-zinc-100 p-3"
-                >
-                  <div>
-                    <p className="font-medium text-zinc-900">{report.propertyName}</p>
-                    <p className="text-sm text-zinc-500">
-                      {new Date(report.date).toLocaleDateString("en-US", {
-                        weekday: "short",
-                        month: "short",
-                        day: "numeric",
-                        hour: "numeric",
-                        minute: "2-digit",
-                      })}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm text-zinc-600">{report.itemCount} items</p>
-                    {report.totalRestocked > 0 && (
-                      <p className="text-sm font-medium text-emerald-600">
-                        +{report.totalRestocked} restocked
-                      </p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <a
-              href="/admin/reports"
-              className="mt-4 inline-block text-sm font-medium text-emerald-700 hover:text-emerald-800"
-            >
-              View all reports →
-            </a>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* AI Suggestions */}
-      {stats.totalItems > 0 && <AISuggestions />}
-
-      {/* Empty State */}
-      {stats.totalItems === 0 && (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Package className="h-12 w-12 text-zinc-300" />
-            <h3 className="mt-4 text-lg font-semibold text-zinc-900">
-              No inventory yet
-            </h3>
-            <p className="mt-1 text-zinc-500">
-              Get started by adding items to your warehouse inventory.
-            </p>
-            <div className="mt-4 flex gap-3">
-              <a
-                href="/admin/inventory"
-                className="inline-flex h-10 items-center rounded-lg bg-emerald-700 px-4 text-sm font-medium text-white hover:bg-emerald-800"
-              >
-                Add Inventory
-              </a>
-              <SeedDemoButton />
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
