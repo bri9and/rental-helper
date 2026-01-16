@@ -1,6 +1,6 @@
 {
-  "name": "StockBnB",
-  "short_name": "StockBnB",
+  "name": "Rental Helper",
+  "short_name": "RH",
   "description": "Inventory management for short-term rentals",
   "start_url": "/staff",
   "display": "standalone",

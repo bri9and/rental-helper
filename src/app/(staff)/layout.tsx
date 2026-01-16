@@ -1,4 +1,4 @@
-import { Package } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 export default function StaffLayout({
@@ -12,8 +12,8 @@ export default function StaffLayout({
       <header className="sticky top-0 z-40 border-b border-zinc-200 bg-white">
         <div className="flex h-14 items-center justify-between px-4">
           <Link href="/staff" className="flex items-center gap-2">
-            <Package className="h-6 w-6 text-emerald-700" />
-            <span className="text-lg font-semibold text-zinc-900">StockBnB</span>
+            <Image src="/logo.png" alt="Rental Helper" width={24} height={24} className="h-6 w-6" />
+            <span className="text-lg font-semibold text-zinc-900">Rental Helper</span>
           </Link>
           <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
             Staff

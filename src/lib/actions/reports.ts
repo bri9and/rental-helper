@@ -7,6 +7,7 @@ import dbConnect from '@/lib/db';
 import Property from '@/models/Property';
 import WarehouseItem from '@/models/WarehouseItem';
 import CleaningReport, { IReportItem } from '@/models/CleaningReport';
+import SupplyRequest from '@/models/SupplyRequest';
 import { sendRestockAlert, sendShortageAlert, LowStockItem } from '@/lib/email';
 
 export type ReportItemInput = {
@@ -14,10 +15,18 @@ export type ReportItemInput = {
   observedCount: number;
 };
 
+export type SupplyRequestInput = {
+  sku: string;
+  name: string;
+  currentCount: number;
+};
+
 export type SubmitReportInput = {
   propertyId: string;
+  propertyName?: string;
   items: ReportItemInput[];
   notes?: string;
+  supplyRequests?: SupplyRequestInput[];
 };
 
 export type RestockResult = {
@@ -39,6 +48,7 @@ export type SubmitReportResult = {
   results?: RestockResult[];
   hasShortages?: boolean;
   hasLowStockAlerts?: boolean;
+  supplyRequestsCreated?: number;
 };
 
 /**
@@ -172,8 +182,51 @@ export async function submitReport(input: SubmitReportInput): Promise<SubmitRepo
       notes: input.notes,
     });
 
+    // Create supply requests if any were flagged
+    let supplyRequestsCreated = 0;
+    if (input.supplyRequests && input.supplyRequests.length > 0) {
+      // Get cleaner name from Clerk (optional, for display purposes)
+      let cleanerName: string | undefined;
+      try {
+        if (!isDevMode()) {
+          const client = await clerkClient();
+          const user = await client.users.getUser(userId);
+          cleanerName = user.firstName
+            ? `${user.firstName} ${user.lastName || ''}`.trim()
+            : user.emailAddresses[0]?.emailAddress;
+        }
+      } catch {
+        // Ignore errors getting user name
+      }
+
+      for (const request of input.supplyRequests) {
+        // Check if there's already a pending request for this item at this property
+        const existingRequest = await SupplyRequest.findOne({
+          propertyId: input.propertyId,
+          sku: request.sku,
+          status: 'pending',
+        });
+
+        if (!existingRequest) {
+          await SupplyRequest.create({
+            ownerId: userId,
+            propertyId: input.propertyId,
+            propertyName: input.propertyName || property.name,
+            sku: request.sku,
+            itemName: request.name,
+            requestedBy: userId,
+            requestedByName: cleanerName,
+            currentCount: request.currentCount,
+            status: 'pending',
+          });
+          supplyRequestsCreated++;
+        }
+      }
+    }
+
     revalidatePath('/admin/dashboard');
     revalidatePath('/admin/inventory');
+    revalidatePath('/admin/supply-requests');
     revalidatePath('/staff');
 
     // Send email alerts (non-blocking)
@@ -193,6 +246,7 @@ export async function submitReport(input: SubmitReportInput): Promise<SubmitRepo
       results,
       hasShortages,
       hasLowStockAlerts,
+      supplyRequestsCreated,
     };
   } catch (error) {
     console.error('Error submitting report:', error);

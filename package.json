@@ -1,5 +1,5 @@
 {
-  "name": "stockbnb",
+  "name": "rental-helper",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -12,6 +12,7 @@
     "@ai-sdk/anthropic": "^3.0.12",
     "@ai-sdk/google": "^3.0.7",
     "@clerk/nextjs": "^6.36.7",
+    "@stripe/stripe-js": "^8.6.1",
     "ai": "^6.0.31",
     "clsx": "^2.1.1",
     "lucide-react": "^0.562.0",
@@ -20,6 +21,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "resend": "^6.7.0",
+    "stripe": "^20.1.2",
     "tailwind-merge": "^3.4.0",
     "zod": "^4.3.5"
   },

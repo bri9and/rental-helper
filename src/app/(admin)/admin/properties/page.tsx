@@ -1,54 +1,32 @@
 export const dynamic = 'force-dynamic';
 
-import { Plus, Home } from "lucide-react";
-import { Card, CardContent, Button } from "@/components/ui";
-import { getProperties } from "@/lib/actions/properties";
-import { PropertiesTable } from "./PropertiesTable";
+import { Plus } from "lucide-react";
+import { Button } from "@/components/ui";
+import { getPropertiesWithItems } from "@/lib/actions/properties";
+import { PropertyCards } from "./PropertyCards";
 import Link from "next/link";
 
 export default async function PropertiesPage() {
-  const properties = await getProperties();
+  const properties = await getPropertiesWithItems();
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-zinc-900">Properties</h1>
-          <p className="text-zinc-500">Manage your rental properties</p>
+          <h1 className="text-xl md:text-2xl font-bold text-zinc-900 dark:text-zinc-100">Properties</h1>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">Restock your rental properties</p>
         </div>
         <Link href="/admin/properties/new">
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Property
+          <Button size="sm">
+            <Plus className="mr-1 h-4 w-4" />
+            Add
           </Button>
         </Link>
       </div>
 
-      {/* Properties Table */}
-      {properties.length > 0 ? (
-        <Card>
-          <PropertiesTable properties={properties} />
-        </Card>
-      ) : (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Home className="h-12 w-12 text-zinc-300" />
-            <h3 className="mt-4 text-lg font-semibold text-zinc-900">
-              No properties yet
-            </h3>
-            <p className="mt-1 text-zinc-500">
-              Get started by adding your first rental property.
-            </p>
-            <Link href="/admin/properties/new" className="mt-4">
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Property
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      )}
+      {/* Property Cards */}
+      <PropertyCards properties={properties} />
     </div>
   );
 }

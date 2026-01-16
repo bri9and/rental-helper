@@ -57,7 +57,7 @@ export function generateLowStockEmailHtml(data: LowStockEmailData): string {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Low Stock Alert - StockBnB</title>
+  <title>Low Stock Alert - Rental Helper</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #fafafa;">
   <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
@@ -65,7 +65,7 @@ export function generateLowStockEmailHtml(data: LowStockEmailData): string {
     <div style="text-align: center; margin-bottom: 32px;">
       <div style="display: inline-flex; align-items: center; gap: 8px;">
         <div style="width: 32px; height: 32px; background-color: #047857; border-radius: 8px;"></div>
-        <span style="font-size: 24px; font-weight: 600; color: #18181b;">StockBnB</span>
+        <span style="font-size: 24px; font-weight: 600; color: #18181b;">Rental Helper</span>
       </div>
     </div>
 
@@ -127,7 +127,7 @@ export function generateLowStockEmailHtml(data: LowStockEmailData): string {
     <!-- Footer -->
     <div style="margin-top: 32px; text-align: center;">
       <p style="margin: 0; font-size: 12px; color: #a1a1aa;">
-        This is an automated alert from StockBnB.
+        This is an automated alert from Rental Helper.
       </p>
       <p style="margin: 8px 0 0 0; font-size: 12px; color: #a1a1aa;">
         Manage your notification preferences in settings.
@@ -157,7 +157,7 @@ export function generateLowStockEmailText(data: LowStockEmailData): string {
     .join('\n');
 
   return `
-LOW STOCK ALERT - StockBnB
+LOW STOCK ALERT - Rental Helper
 
 Following a cleaning report at ${data.propertyName} on ${formattedDate}, the following items are below their low stock threshold:
 
@@ -166,6 +166,6 @@ ${itemList}
 Please restock these items to maintain adequate supply levels.
 
 ---
-This is an automated alert from StockBnB.
+This is an automated alert from Rental Helper.
   `.trim();
 }

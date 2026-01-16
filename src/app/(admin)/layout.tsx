@@ -1,11 +1,14 @@
-import { Package, LayoutDashboard, Home, Settings, ClipboardList } from "lucide-react";
+import { LayoutDashboard, Home, Settings, ClipboardList, Package, ShoppingCart, Bell } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 const navItems = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/reports", label: "Reports", icon: ClipboardList },
   { href: "/admin/inventory", label: "Inventory", icon: Package },
   { href: "/admin/properties", label: "Properties", icon: Home },
+  { href: "/admin/reports", label: "Reports", icon: ClipboardList },
+  { href: "/admin/supply-requests", label: "Requests", icon: Bell },
+  { href: "/admin/shop", label: "Shop", icon: ShoppingCart },
 ];
 
 export default function AdminLayout({
@@ -15,13 +18,24 @@ export default function AdminLayout({
 }) {
   return (
     <div className="min-h-screen bg-zinc-50">
-      {/* Sidebar */}
-      <aside className="fixed left-0 top-0 z-40 h-screen w-64 border-r border-zinc-200 bg-white">
+      {/* Mobile Header */}
+      <header className="fixed top-0 left-0 right-0 z-40 flex h-14 items-center justify-between border-b border-zinc-200 bg-white px-4 md:hidden">
+        <Link href="/" className="flex items-center gap-2">
+          <Image src="/logo.png" alt="Rental Helper" width={32} height={32} className="h-8 w-8" />
+          <span className="text-lg font-semibold text-zinc-900">Rental Helper</span>
+        </Link>
+        <Link href="/admin/settings" className="p-2 text-zinc-600">
+          <Settings className="h-5 w-5" />
+        </Link>
+      </header>
+
+      {/* Desktop Sidebar */}
+      <aside className="fixed left-0 top-0 z-40 hidden h-screen w-64 border-r border-zinc-200 bg-white md:block">
         {/* Logo */}
-        <div className="flex h-16 items-center gap-2 border-b border-zinc-200 px-6">
-          <Package className="h-8 w-8 text-emerald-700" />
-          <span className="text-xl font-semibold text-zinc-900">StockBnB</span>
-        </div>
+        <Link href="/" className="flex h-16 items-center gap-2 border-b border-zinc-200 px-6">
+          <Image src="/logo.png" alt="Rental Helper" width={32} height={32} className="h-8 w-8" />
+          <span className="text-xl font-semibold text-zinc-900">Rental Helper</span>
+        </Link>
 
         {/* Navigation */}
         <nav className="space-y-1 p-4">
@@ -49,9 +63,23 @@ export default function AdminLayout({
         </div>
       </aside>
 
+      {/* Mobile Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 z-40 flex h-16 items-center justify-around border-t border-zinc-200 bg-white md:hidden">
+        {navItems.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className="flex flex-col items-center gap-1 px-3 py-2 text-zinc-600"
+          >
+            <item.icon className="h-5 w-5" />
+            <span className="text-xs">{item.label}</span>
+          </Link>
+        ))}
+      </nav>
+
       {/* Main content */}
-      <main className="pl-64">
-        <div className="p-8">{children}</div>
+      <main className="pt-14 pb-20 md:pt-0 md:pb-0 md:pl-64">
+        <div className="p-4 md:p-8">{children}</div>
       </main>
     </div>
   );

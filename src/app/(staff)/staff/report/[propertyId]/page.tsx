@@ -27,6 +27,7 @@ export default async function ReportPage({ params }: ReportPageProps) {
       {/* Report Form */}
       <ReportForm
         propertyId={propertyId}
+        propertyName={data.property.name}
         checklist={data.checklist}
       />
     </div>

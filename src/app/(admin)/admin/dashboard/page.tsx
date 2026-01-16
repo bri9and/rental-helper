@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { Package, Home, AlertTriangle, ClipboardCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
 import { AISuggestions } from "@/components/admin/AISuggestions";
+import { SeedDemoButton } from "@/components/admin/SeedDemoButton";
 import dbConnect from "@/lib/db";
 import WarehouseItem from "@/models/WarehouseItem";
 import Property from "@/models/Property";
@@ -76,64 +77,64 @@ export default async function DashboardPage() {
   const stats = await getDashboardStats();
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 md:space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-zinc-900">Dashboard</h1>
-        <p className="text-zinc-500">Overview of your inventory and properties</p>
+        <h1 className="text-xl md:text-2xl font-bold text-zinc-900">Dashboard</h1>
+        <p className="text-sm md:text-base text-zinc-500">Overview of your inventory and properties</p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-500">
+          <CardHeader className="flex flex-row items-center justify-between p-3 pb-1 md:p-6 md:pb-2">
+            <CardTitle className="text-xs md:text-sm font-medium text-zinc-500">
               Total Items
             </CardTitle>
-            <Package className="h-5 w-5 text-zinc-400" />
+            <Package className="h-4 w-4 md:h-5 md:w-5 text-zinc-400" />
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-zinc-900">{stats.totalItems}</div>
+          <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+            <div className="text-2xl md:text-3xl font-bold text-zinc-900">{stats.totalItems}</div>
             <p className="text-xs text-zinc-500">in warehouse</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-500">
+          <CardHeader className="flex flex-row items-center justify-between p-3 pb-1 md:p-6 md:pb-2">
+            <CardTitle className="text-xs md:text-sm font-medium text-zinc-500">
               Low Stock
             </CardTitle>
-            <AlertTriangle className="h-5 w-5 text-rose-500" />
+            <AlertTriangle className="h-4 w-4 md:h-5 md:w-5 text-rose-500" />
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-rose-600">{stats.lowStockItems}</div>
-            <p className="text-xs text-zinc-500">items need restocking</p>
+          <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+            <div className="text-2xl md:text-3xl font-bold text-rose-600">{stats.lowStockItems}</div>
+            <p className="text-xs text-zinc-500">need restocking</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-500">
+          <CardHeader className="flex flex-row items-center justify-between p-3 pb-1 md:p-6 md:pb-2">
+            <CardTitle className="text-xs md:text-sm font-medium text-zinc-500">
               Properties
             </CardTitle>
-            <Home className="h-5 w-5 text-zinc-400" />
+            <Home className="h-4 w-4 md:h-5 md:w-5 text-zinc-400" />
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-zinc-900">{stats.properties}</div>
-            <p className="text-xs text-zinc-500">active locations</p>
+          <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+            <div className="text-2xl md:text-3xl font-bold text-zinc-900">{stats.properties}</div>
+            <p className="text-xs text-zinc-500">locations</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-500">
-              Today&apos;s Reports
+          <CardHeader className="flex flex-row items-center justify-between p-3 pb-1 md:p-6 md:pb-2">
+            <CardTitle className="text-xs md:text-sm font-medium text-zinc-500">
+              Today
             </CardTitle>
-            <ClipboardCheck className="h-5 w-5 text-zinc-400" />
+            <ClipboardCheck className="h-4 w-4 md:h-5 md:w-5 text-zinc-400" />
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-zinc-900">{stats.todayReports}</div>
-            <p className="text-xs text-zinc-500">cleanings completed</p>
+          <CardContent className="p-3 pt-0 md:p-6 md:pt-0">
+            <div className="text-2xl md:text-3xl font-bold text-zinc-900">{stats.todayReports}</div>
+            <p className="text-xs text-zinc-500">reports</p>
           </CardContent>
         </Card>
       </div>
@@ -234,12 +235,15 @@ export default async function DashboardPage() {
             <p className="mt-1 text-zinc-500">
               Get started by adding items to your warehouse inventory.
             </p>
-            <a
-              href="/admin/inventory"
-              className="mt-4 inline-flex h-10 items-center rounded-lg bg-emerald-700 px-4 text-sm font-medium text-white hover:bg-emerald-800"
-            >
-              Add Inventory
-            </a>
+            <div className="mt-4 flex gap-3">
+              <a
+                href="/admin/inventory"
+                className="inline-flex h-10 items-center rounded-lg bg-emerald-700 px-4 text-sm font-medium text-white hover:bg-emerald-800"
+              >
+                Add Inventory
+              </a>
+              <SeedDemoButton />
+            </div>
           </CardContent>
         </Card>
       )}
