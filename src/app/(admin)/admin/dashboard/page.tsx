@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic';
 
-import { Package, Home, AlertTriangle, Bell, RefreshCw, CheckCircle, Clock, ShoppingCart, ExternalLink, Warehouse } from "lucide-react";
+import { Home, AlertTriangle, Bell, RefreshCw, CheckCircle, Clock, ShoppingCart, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
 import { SeedDemoButton } from "@/components/admin/SeedDemoButton";
 import { PropertyRestockCards } from "./PropertyRestockCards";
@@ -28,6 +28,7 @@ export type PropertyStatus = {
     parLevel: number;
     warehouseQty: number;
     image: string;
+    amazonAsin?: string;
   }[];
 };
 
@@ -53,16 +54,6 @@ function getItemImage(sku: string): string {
   };
   return imageMap[sku] || '/items/default.png';
 }
-
-export type LowStockItem = {
-  _id: string;
-  name: string;
-  sku: string;
-  quantity: number;
-  lowStockThreshold: number;
-  parLevel: number;
-  amazonAsin?: string;
-};
 
 async function getManagerDashboard() {
   await dbConnect();
@@ -114,6 +105,7 @@ async function getManagerDashboard() {
         parLevel: setting.parLevel,
         warehouseQty: warehouseItem?.quantity || 0,
         image: getItemImage(setting.itemSku),
+        amazonAsin: warehouseItem?.amazonAsin,
       };
     });
 
@@ -144,20 +136,6 @@ async function getManagerDashboard() {
     return order[a.status] - order[b.status];
   });
 
-  // Get warehouse low stock items with Amazon ASINs
-  const lowStockWarehouseItems: LowStockItem[] = warehouseItems
-    .filter(i => i.quantity <= i.lowStockThreshold)
-    .map(i => ({
-      _id: i._id.toString(),
-      name: i.name,
-      sku: i.sku,
-      quantity: i.quantity,
-      lowStockThreshold: i.lowStockThreshold,
-      parLevel: i.parLevel,
-      amazonAsin: i.amazonAsin,
-    }))
-    .sort((a, b) => a.quantity - b.quantity); // Most critical first
-
   return {
     properties: propertyStatuses,
     pendingRequests: pendingRequests.map(r => ({
@@ -170,12 +148,10 @@ async function getManagerDashboard() {
       amazonAsin: itemMap.get(r.sku)?.amazonAsin,
       createdAt: r.createdAt,
     })),
-    lowStockWarehouse: lowStockWarehouseItems,
     stats: {
       totalProperties: properties.length,
       propertiesNeedingAttention: propertyStatuses.filter(p => p.status !== 'good').length,
       pendingRequestsCount: pendingRequests.length,
-      lowStockWarehouseCount: lowStockWarehouseItems.length,
     }
   };
 }
@@ -265,18 +241,6 @@ export default async function DashboardPage() {
             </div>
           </CardContent>
         </Card>
-
-        <Card className={data.stats.lowStockWarehouseCount > 0 ? "border-rose-200 bg-rose-50" : ""}>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <Package className="h-8 w-8 text-rose-500" />
-              <div>
-                <p className="text-2xl font-bold text-zinc-900">{data.stats.lowStockWarehouseCount}</p>
-                <p className="text-xs text-zinc-600">Low in Warehouse</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Pending Supply Requests */}
@@ -307,7 +271,7 @@ export default async function DashboardPage() {
                   <div className="flex items-center gap-3">
                     {req.amazonAsin && (
                       <a
-                        href={`https://www.amazon.com/dp/${req.amazonAsin}`}
+                        href={`https://www.amazon.com/dp/${req.amazonAsin}?qty=10`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 text-white text-sm font-medium shadow-sm transition-all"
@@ -324,59 +288,6 @@ export default async function DashboardPage() {
                   </div>
                 </div>
               ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Warehouse Low Stock */}
-      {data.lowStockWarehouse.length > 0 && (
-        <Card className="border-rose-200 bg-gradient-to-r from-rose-50 to-orange-50">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-rose-800">
-              <Warehouse className="h-5 w-5" />
-              Warehouse Low Stock
-              <span className="ml-auto text-sm font-normal">
-                <Link href="/admin/inventory" className="text-rose-600 hover:underline">
-                  View inventory →
-                </Link>
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="space-y-2">
-              {data.lowStockWarehouse.slice(0, 5).map((item) => (
-                <div key={item._id} className="flex items-center justify-between bg-white rounded-lg p-3 border border-rose-100">
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-zinc-900">{item.name}</p>
-                    <p className="text-sm text-rose-600">
-                      {item.quantity} left • Reorder at {item.lowStockThreshold}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    {item.amazonAsin && (
-                      <a
-                        href={`https://www.amazon.com/dp/${item.amazonAsin}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 text-white text-sm font-medium shadow-sm transition-all"
-                      >
-                        <ShoppingCart className="h-3.5 w-3.5" />
-                        Buy on Amazon
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
-                    )}
-                    <span className="text-sm text-rose-500 font-medium">
-                      Need {item.parLevel - item.quantity}
-                    </span>
-                  </div>
-                </div>
-              ))}
-              {data.lowStockWarehouse.length > 5 && (
-                <p className="text-sm text-zinc-500 text-center py-2">
-                  +{data.lowStockWarehouse.length - 5} more items low in stock
-                </p>
-              )}
             </div>
           </CardContent>
         </Card>

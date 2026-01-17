@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic';
 
-import { ClipboardCheck, Package, AlertTriangle, Calendar } from "lucide-react";
+import { ClipboardCheck, Package, AlertTriangle, Calendar, Bath, UtensilsCrossed, Bed, Sofa, CheckCircle2, User } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, Badge } from "@/components/ui";
 import dbConnect from "@/lib/db";
 import CleaningReport from "@/models/CleaningReport";
@@ -16,13 +16,23 @@ interface ReportItem {
   restockedAmount: number;
 }
 
+interface CleaningChecklist {
+  bathrooms: boolean;
+  kitchen: boolean;
+  bedrooms: boolean;
+  livingSpace: boolean;
+}
+
 interface Report {
   _id: string;
   propertyId: string;
   propertyName?: string;
+  cleanerName?: string;
   date: Date;
   items: ReportItem[];
   notes?: string;
+  checklist?: CleaningChecklist;
+  completedAt?: Date;
 }
 
 async function getRecentReports(): Promise<Report[]> {
@@ -33,20 +43,21 @@ async function getRecentReports(): Promise<Report[]> {
     redirect("/");
   }
 
-  const reports = await CleaningReport.find({ cleanerId: userId })
+  // Get properties owned by this user
+  const userProperties = await Property.find({ ownerId: userId })
+    .select("_id name")
+    .lean();
+
+  const propertyIds = userProperties.map(p => p._id);
+  const propertyMap = new Map(
+    userProperties.map(p => [p._id.toString(), p.name])
+  );
+
+  // Get reports for user's properties (from any cleaner)
+  const reports = await CleaningReport.find({ propertyId: { $in: propertyIds } })
     .sort({ date: -1 })
     .limit(50)
     .lean();
-
-  // Get property names
-  const propertyIds = [...new Set(reports.map(r => r.propertyId.toString()))];
-  const properties = await Property.find({ _id: { $in: propertyIds } })
-    .select("name")
-    .lean();
-
-  const propertyMap = new Map(
-    properties.map(p => [p._id.toString(), p.name])
-  );
 
   return reports.map(report => ({
     ...report,
@@ -149,9 +160,10 @@ export default async function ReportsPage() {
             const totalItems = report.items.length;
             const totalRestockedInReport = report.items.reduce((s, i) => s + i.restockedAmount, 0);
             const hasRestocking = totalRestockedInReport > 0;
+            const isCleanerReport = !!report.checklist;
 
             return (
-              <Card key={report._id} className={hasRestocking ? "border-emerald-200" : ""}>
+              <Card key={report._id} className={hasRestocking ? "border-emerald-200" : isCleanerReport ? "border-emerald-100" : ""}>
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
                     <div>
@@ -165,16 +177,56 @@ export default async function ReportsPage() {
                           minute: "2-digit",
                         })}
                       </p>
+                      {report.cleanerName && (
+                        <p className="text-sm text-zinc-500 flex items-center gap-1 mt-1">
+                          <User className="h-3 w-3" />
+                          {report.cleanerName}
+                        </p>
+                      )}
                     </div>
                     <div className="flex items-center gap-2">
+                      {isCleanerReport && (
+                        <Badge variant="success">
+                          <CheckCircle2 className="h-3 w-3 mr-1" />
+                          Cleaned
+                        </Badge>
+                      )}
                       {hasRestocking && (
                         <Badge variant="success">
                           +{totalRestockedInReport} restocked
                         </Badge>
                       )}
-                      <Badge variant="default">{totalItems} items</Badge>
+                      {totalItems > 0 && (
+                        <Badge variant="default">{totalItems} items</Badge>
+                      )}
                     </div>
                   </div>
+
+                  {/* Cleaning Checklist for cleaner reports */}
+                  {report.checklist && (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {report.checklist.bathrooms && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
+                          <Bath className="h-3 w-3" /> Bathrooms
+                        </span>
+                      )}
+                      {report.checklist.kitchen && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-orange-50 px-3 py-1 text-xs font-medium text-orange-700">
+                          <UtensilsCrossed className="h-3 w-3" /> Kitchen
+                        </span>
+                      )}
+                      {report.checklist.bedrooms && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-purple-50 px-3 py-1 text-xs font-medium text-purple-700">
+                          <Bed className="h-3 w-3" /> Bedrooms
+                        </span>
+                      )}
+                      {report.checklist.livingSpace && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
+                          <Sofa className="h-3 w-3" /> Living Space
+                        </span>
+                      )}
+                    </div>
+                  )}
 
                   {report.notes && (
                     <p className="mt-3 text-sm text-zinc-600 italic">
@@ -182,31 +234,33 @@ export default async function ReportsPage() {
                     </p>
                   )}
 
-                  {/* Item Details */}
-                  <div className="mt-4 border-t border-zinc-100 pt-4">
-                    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                      {report.items.map((item) => (
-                        <div
-                          key={item.sku}
-                          className="flex items-center justify-between rounded-lg bg-zinc-50 px-3 py-2 text-sm"
-                        >
-                          <span className="text-zinc-700">
-                            {itemNames.get(item.sku) ?? item.sku}
-                          </span>
-                          <div className="flex items-center gap-2">
-                            <span className="text-zinc-500">
-                              {item.observedCount}
+                  {/* Item Details - only show if there are items */}
+                  {report.items.length > 0 && (
+                    <div className="mt-4 border-t border-zinc-100 pt-4">
+                      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                        {report.items.map((item) => (
+                          <div
+                            key={item.sku}
+                            className="flex items-center justify-between rounded-lg bg-zinc-50 px-3 py-2 text-sm"
+                          >
+                            <span className="text-zinc-700">
+                              {itemNames.get(item.sku) ?? item.sku}
                             </span>
-                            {item.restockedAmount > 0 && (
-                              <span className="font-medium text-emerald-600">
-                                +{item.restockedAmount}
+                            <div className="flex items-center gap-2">
+                              <span className="text-zinc-500">
+                                {item.observedCount}
                               </span>
-                            )}
+                              {item.restockedAmount > 0 && (
+                                <span className="font-medium text-emerald-600">
+                                  +{item.restockedAmount}
+                                </span>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </CardContent>
               </Card>
             );

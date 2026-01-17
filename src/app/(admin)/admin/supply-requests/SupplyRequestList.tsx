@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
-  Package,
   Clock,
   Truck,
   CheckCircle,
@@ -15,8 +14,9 @@ import {
   MapPin,
   ShoppingCart,
   ExternalLink,
+  Home,
 } from "lucide-react";
-import { Card, CardContent, Button, Input } from "@/components/ui";
+import { Card, CardContent, Button } from "@/components/ui";
 import {
   markAsOrdered,
   markAsReceived,
@@ -24,9 +24,8 @@ import {
   SupplyRequestSummary,
 } from "@/lib/actions/supply-requests";
 
-// Generate Amazon product URL from ASIN
-function getAmazonUrl(asin: string): string {
-  return `https://www.amazon.com/dp/${asin}`;
+function getAmazonUrl(asin: string, qty: number = 1): string {
+  return `https://www.amazon.com/dp/${asin}?qty=${qty}`;
 }
 
 interface SupplyRequestListProps {
@@ -35,297 +34,257 @@ interface SupplyRequestListProps {
   completedRequests: SupplyRequestSummary[];
 }
 
-function formatDate(dateString: string) {
-  const date = new Date(dateString);
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
+// Group requests by property
+function groupByProperty(requests: SupplyRequestSummary[]) {
+  const groups: Record<string, {
+    propertyId: string;
+    propertyName: string;
+    propertyAddress?: string;
+    requests: SupplyRequestSummary[];
+  }> = {};
+
+  requests.forEach((req) => {
+    if (!groups[req.propertyId]) {
+      groups[req.propertyId] = {
+        propertyId: req.propertyId,
+        propertyName: req.propertyName,
+        propertyAddress: req.propertyAddress,
+        requests: [],
+      };
+    }
+    groups[req.propertyId].requests.push(req);
   });
+
+  return Object.values(groups).sort((a, b) => a.propertyName.localeCompare(b.propertyName));
 }
 
-function getItemImage(sku: string): string {
-  const imageMap: Record<string, string> = {
-    'TP-001': '/items/toilet-paper.png',
-    'SOAP-001': '/items/soap.png',
-    'SHAMP-001': '/items/shampoo.png',
-    'COND-001': '/items/conditioner.png',
-    'TOWEL-001': '/items/towel.png',
-    'HTOWEL-001': '/items/hand-towel.png',
-    'DISH-001': '/items/dish-soap.png',
-    'SPONGE-001': '/items/sponge.png',
-    'TRASH-001': '/items/trash-bag.png',
-    'PTOWEL-001': '/items/paper-towel.png',
-    'COFFEE-001': '/items/coffee.png',
-    'LAUNDRY-001': '/items/laundry.png',
-    'CLEAN-001': '/items/cleaner.png',
-    'GLASS-001': '/items/glass-cleaner.png',
-    'SHEET-Q01': '/items/sheets.png',
-    'FRESH-001': '/items/air-freshener.png',
-  };
-  return imageMap[sku] || '/items/default.png';
-}
-
-function PendingRequestCard({ request }: { request: SupplyRequestSummary }) {
-  const router = useRouter();
-  const [orderQuantity, setOrderQuantity] = useState<string>("10");
+function PendingItemRow({ request, onUpdate }: {
+  request: SupplyRequestSummary;
+  onUpdate: () => void;
+}) {
+  const [quantity, setQuantity] = useState(10);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  const handleOrder = async () => {
-    const qty = parseInt(orderQuantity);
-    if (!qty || qty <= 0) {
-      setError("Enter a valid quantity");
-      return;
+  const handleBuyAndMark = async () => {
+    if (request.amazonAsin) {
+      window.open(getAmazonUrl(request.amazonAsin, quantity), '_blank');
     }
-
     setLoading(true);
-    setError(null);
-
-    const result = await markAsOrdered(request._id, qty);
-
-    if (result.success) {
-      router.refresh();
-    } else {
-      setError(result.error || "Failed to order");
-    }
-
+    await markAsOrdered(request._id, quantity);
+    onUpdate();
     setLoading(false);
   };
 
   const handleCancel = async () => {
     setLoading(true);
     await cancelRequest(request._id);
-    router.refresh();
+    onUpdate();
     setLoading(false);
   };
 
-  const handleBuyOnAmazon = () => {
-    if (request.amazonAsin) {
-      window.open(getAmazonUrl(request.amazonAsin), '_blank');
-    }
-  };
+  return (
+    <div className="flex items-center gap-3 py-3 border-b border-zinc-100 last:border-0">
+      <div className="flex-1 min-w-0">
+        <p className="font-medium text-zinc-900 truncate">{request.itemName}</p>
+        <p className="text-xs text-zinc-500">
+          {request.requestedByName ? `Reported by ${request.requestedByName}` : 'Low stock reported'}
+        </p>
+      </div>
+
+      {/* Quantity selector */}
+      <div className="flex items-center gap-1">
+        <button
+          onClick={() => setQuantity(Math.max(1, quantity - 1))}
+          className="h-7 w-7 rounded bg-zinc-100 text-zinc-600 hover:bg-zinc-200 text-sm font-bold"
+        >
+          -
+        </button>
+        <input
+          type="number"
+          min="1"
+          value={quantity}
+          onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+          className="h-7 w-12 rounded border border-zinc-200 text-center text-sm font-semibold"
+        />
+        <button
+          onClick={() => setQuantity(quantity + 1)}
+          className="h-7 w-7 rounded bg-zinc-100 text-zinc-600 hover:bg-zinc-200 text-sm font-bold"
+        >
+          +
+        </button>
+      </div>
+
+      {/* Buy button */}
+      <button
+        onClick={handleBuyAndMark}
+        disabled={loading}
+        className="flex items-center gap-1 px-2 py-1 rounded bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs font-medium disabled:opacity-50"
+      >
+        {loading ? (
+          <Loader2 className="h-3 w-3 animate-spin" />
+        ) : (
+          <>
+            {request.amazonAsin ? <ShoppingCart className="h-3 w-3" /> : <Truck className="h-3 w-3" />}
+            Buy
+          </>
+        )}
+      </button>
+
+      {/* Cancel */}
+      <button
+        onClick={handleCancel}
+        disabled={loading}
+        className="p-1.5 text-zinc-400 hover:text-rose-500"
+      >
+        <XCircle className="h-5 w-5" />
+      </button>
+    </div>
+  );
+}
+
+function PropertyRequestCard({ group, onUpdate }: {
+  group: { propertyId: string; propertyName: string; propertyAddress?: string; requests: SupplyRequestSummary[] };
+  onUpdate: () => void;
+}) {
+  const [expanded, setExpanded] = useState(true);
 
   return (
-    <Card className="bg-white border-amber-100 shadow-sm hover:shadow-md transition-shadow">
-      <CardContent className="p-4">
-        <div className="flex items-start gap-4">
-          {/* Item Image */}
-          <div className="relative h-14 w-14 flex-shrink-0 rounded-xl bg-amber-50 border border-amber-100 overflow-hidden">
-            <Image
-              src={getItemImage(request.sku)}
-              alt={request.itemName}
-              fill
-              className="object-cover p-1"
-            />
+    <Card className="bg-white border-zinc-200 shadow-sm">
+      <CardContent className="p-0">
+        {/* Property Header */}
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="w-full flex items-center gap-3 p-4 hover:bg-zinc-50 transition-colors"
+        >
+          <div className="h-10 w-10 rounded-xl bg-zinc-100 flex items-center justify-center flex-shrink-0">
+            <Home className="h-5 w-5 text-zinc-600" />
           </div>
-
-          {/* Item Details */}
-          <div className="flex-1 min-w-0">
-            <p className="font-semibold text-zinc-800 truncate">
-              {request.itemName}
-            </p>
-            <div className="flex items-center gap-1 mt-1">
-              <MapPin className="h-3 w-3 text-zinc-400" />
-              <p className="text-sm text-zinc-500 truncate">
-                {request.propertyName}
-              </p>
-            </div>
-            {request.propertyAddress && (
-              <p className="text-xs text-zinc-400 truncate mt-0.5">
-                {request.propertyAddress}
-              </p>
+          <div className="flex-1 text-left min-w-0">
+            <p className="font-semibold text-zinc-900">{group.propertyName}</p>
+            {group.propertyAddress && (
+              <p className="text-xs text-zinc-500 truncate">{group.propertyAddress}</p>
             )}
-            <p className="text-xs text-amber-600 font-medium mt-1">
-              Only {request.currentCount} left at property
-            </p>
           </div>
+          <span className="px-2 py-1 rounded-full bg-zinc-100 text-zinc-600 text-xs font-medium">
+            {group.requests.length} item{group.requests.length > 1 ? 's' : ''}
+          </span>
+          {expanded ? (
+            <ChevronUp className="h-5 w-5 text-zinc-400" />
+          ) : (
+            <ChevronDown className="h-5 w-5 text-zinc-400" />
+          )}
+        </button>
 
-          {/* Actions */}
-          <div className="flex flex-col gap-2">
-            {/* Amazon Buy Button */}
-            {request.amazonAsin && (
-              <button
-                onClick={handleBuyOnAmazon}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 text-white text-sm font-medium shadow-sm transition-all"
-              >
-                <ShoppingCart className="h-4 w-4" />
-                Buy on Amazon
-                <ExternalLink className="h-3 w-3" />
-              </button>
-            )}
-
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => setOrderQuantity(String(Math.max(1, parseInt(orderQuantity) - 5)))}
-                  className="h-8 w-8 rounded-lg bg-slate-100 text-slate-600 hover:bg-amber-100 hover:text-amber-600 text-sm font-bold transition-colors"
-                >
-                  -
-                </button>
-                <input
-                  type="number"
-                  min="1"
-                  value={orderQuantity}
-                  onChange={(e) => setOrderQuantity(e.target.value)}
-                  className="h-8 w-14 rounded-lg border border-slate-200 bg-white text-center text-sm font-semibold text-zinc-800"
-                />
-                <button
-                  onClick={() => setOrderQuantity(String(parseInt(orderQuantity) + 5))}
-                  className="h-8 w-8 rounded-lg bg-slate-100 text-slate-600 hover:bg-amber-100 hover:text-amber-600 text-sm font-bold transition-colors"
-                >
-                  +
-                </button>
-              </div>
-              <Button
-                onClick={handleOrder}
-                disabled={loading}
-                className="bg-amber-500 hover:bg-amber-600 text-white"
-              >
-                {loading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <>
-                    <Truck className="h-4 w-4 mr-1" />
-                    Mark Ordered
-                  </>
-                )}
-              </Button>
-              <button
-                onClick={handleCancel}
-                disabled={loading}
-                className="p-2 text-zinc-400 hover:text-rose-500 transition-colors"
-              >
-                <XCircle className="h-5 w-5" />
-              </button>
+        {/* Items */}
+        {expanded && (
+          <div className="px-4 pb-4">
+            <div className="bg-zinc-50 rounded-lg p-3">
+              {group.requests.map((request) => (
+                <PendingItemRow key={request._id} request={request} onUpdate={onUpdate} />
+              ))}
             </div>
           </div>
-        </div>
-        {error && (
-          <p className="mt-2 text-sm text-rose-600">{error}</p>
         )}
       </CardContent>
     </Card>
   );
 }
 
-function OrderedRequestCard({ request }: { request: SupplyRequestSummary }) {
-  const router = useRouter();
+function OrderedItemRow({ request, onUpdate }: {
+  request: SupplyRequestSummary;
+  onUpdate: () => void;
+}) {
   const [loading, setLoading] = useState(false);
 
   const handleReceived = async () => {
     setLoading(true);
     await markAsReceived(request._id);
-    router.refresh();
+    onUpdate();
     setLoading(false);
   };
 
   const handleCancel = async () => {
     setLoading(true);
     await cancelRequest(request._id);
-    router.refresh();
+    onUpdate();
     setLoading(false);
   };
 
   return (
-    <Card className="bg-white border-blue-100 shadow-sm hover:shadow-md transition-shadow">
-      <CardContent className="p-4">
-        <div className="flex items-center gap-4">
-          {/* Item Image */}
-          <div className="relative h-14 w-14 flex-shrink-0 rounded-xl bg-blue-50 border border-blue-100 overflow-hidden">
-            <Image
-              src={getItemImage(request.sku)}
-              alt={request.itemName}
-              fill
-              className="object-cover p-1"
-            />
-          </div>
+    <div className="flex items-center gap-3 py-3 border-b border-zinc-100 last:border-0">
+      <div className="flex-1 min-w-0">
+        <p className="font-medium text-zinc-900 truncate">{request.itemName}</p>
+        <p className="text-xs text-blue-600 font-medium">{request.orderQuantity} units ordered</p>
+      </div>
 
-          {/* Item Details */}
-          <div className="flex-1 min-w-0">
-            <p className="font-semibold text-zinc-800 truncate">
-              {request.itemName}
-            </p>
-            <div className="flex items-center gap-1 mt-1">
-              <MapPin className="h-3 w-3 text-zinc-400" />
-              <p className="text-sm text-zinc-500 truncate">
-                {request.propertyName}
-              </p>
-            </div>
-            <p className="text-xs text-blue-600 font-medium mt-1">
-              {request.orderQuantity} units on order
-            </p>
-          </div>
+      <Button
+        onClick={handleReceived}
+        disabled={loading}
+        size="sm"
+        className="bg-blue-500 hover:bg-blue-600 text-white"
+      >
+        {loading ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <>
+            <CheckCircle className="h-4 w-4 mr-1" />
+            Received
+          </>
+        )}
+      </Button>
 
-          {/* Actions */}
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={handleReceived}
-              disabled={loading}
-              className="bg-blue-500 hover:bg-blue-600 text-white"
-            >
-              {loading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <>
-                  <CheckCircle className="h-4 w-4 mr-1" />
-                  Received
-                </>
-              )}
-            </Button>
-            <button
-              onClick={handleCancel}
-              disabled={loading}
-              className="p-2 text-zinc-400 hover:text-rose-500 transition-colors"
-            >
-              <XCircle className="h-5 w-5" />
-            </button>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+      <button
+        onClick={handleCancel}
+        disabled={loading}
+        className="p-1.5 text-zinc-400 hover:text-rose-500"
+      >
+        <XCircle className="h-5 w-5" />
+      </button>
+    </div>
   );
 }
 
-function CompletedRequestCard({ request }: { request: SupplyRequestSummary }) {
-  const isCancelled = request.status === "cancelled";
+function OrderedPropertyCard({ group, onUpdate }: {
+  group: { propertyId: string; propertyName: string; propertyAddress?: string; requests: SupplyRequestSummary[] };
+  onUpdate: () => void;
+}) {
+  const [expanded, setExpanded] = useState(true);
 
   return (
-    <Card className="bg-slate-50 border-slate-200">
-      <CardContent className="p-4">
-        <div className="flex items-center gap-4">
-          {/* Item Image */}
-          <div className="relative h-12 w-12 flex-shrink-0 rounded-xl bg-white border border-slate-200 overflow-hidden opacity-60">
-            <Image
-              src={getItemImage(request.sku)}
-              alt={request.itemName}
-              fill
-              className="object-cover p-1"
-            />
+    <Card className="bg-white border-blue-100 shadow-sm">
+      <CardContent className="p-0">
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="w-full flex items-center gap-3 p-4 hover:bg-blue-50/50 transition-colors"
+        >
+          <div className="h-10 w-10 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
+            <Truck className="h-5 w-5 text-blue-600" />
           </div>
-
-          {/* Item Details */}
-          <div className="flex-1 min-w-0">
-            <p className="font-medium text-zinc-600 truncate">
-              {request.itemName}
-            </p>
-            <p className="text-sm text-zinc-400 truncate">
-              {request.propertyName}
-            </p>
+          <div className="flex-1 text-left min-w-0">
+            <p className="font-semibold text-zinc-900">{group.propertyName}</p>
+            {group.propertyAddress && (
+              <p className="text-xs text-zinc-500 truncate">{group.propertyAddress}</p>
+            )}
           </div>
-
-          {/* Status Badge */}
-          <span
-            className={`px-3 py-1 rounded-full text-xs font-medium ${
-              isCancelled
-                ? "bg-zinc-200 text-zinc-600"
-                : "bg-emerald-100 text-emerald-700"
-            }`}
-          >
-            {isCancelled ? "Cancelled" : `+${request.orderQuantity} received`}
+          <span className="px-2 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium">
+            {group.requests.length} on order
           </span>
-        </div>
+          {expanded ? (
+            <ChevronUp className="h-5 w-5 text-zinc-400" />
+          ) : (
+            <ChevronDown className="h-5 w-5 text-zinc-400" />
+          )}
+        </button>
+
+        {expanded && (
+          <div className="px-4 pb-4">
+            <div className="bg-zinc-50 rounded-lg p-3">
+              {group.requests.map((request) => (
+                <OrderedItemRow key={request._id} request={request} onUpdate={onUpdate} />
+              ))}
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -336,34 +295,40 @@ export function SupplyRequestList({
   orderedRequests,
   completedRequests,
 }: SupplyRequestListProps) {
+  const router = useRouter();
   const [showCompleted, setShowCompleted] = useState(false);
+
+  const handleUpdate = () => router.refresh();
+
+  const pendingGroups = groupByProperty(pendingRequests);
+  const orderedGroups = groupByProperty(orderedRequests);
 
   return (
     <div className="space-y-8">
-      {/* Pending Requests */}
-      {pendingRequests.length > 0 && (
+      {/* Pending Requests - Grouped by Property */}
+      {pendingGroups.length > 0 && (
         <section>
           <div className="flex items-center gap-2 mb-4">
-            <div className="h-8 w-8 rounded-full bg-amber-100 flex items-center justify-center">
-              <Clock className="h-4 w-4 text-amber-600" />
+            <div className="h-8 w-8 rounded-full bg-zinc-100 flex items-center justify-center">
+              <Clock className="h-4 w-4 text-zinc-600" />
             </div>
             <h2 className="text-lg font-semibold text-zinc-800">
               Needs Ordering
             </h2>
-            <span className="ml-auto text-sm text-amber-600 font-medium">
-              {pendingRequests.length} pending
+            <span className="ml-auto text-sm text-zinc-500 font-medium">
+              {pendingRequests.length} items across {pendingGroups.length} properties
             </span>
           </div>
-          <div className="space-y-3">
-            {pendingRequests.map((request) => (
-              <PendingRequestCard key={request._id} request={request} />
+          <div className="space-y-4">
+            {pendingGroups.map((group) => (
+              <PropertyRequestCard key={group.propertyId} group={group} onUpdate={handleUpdate} />
             ))}
           </div>
         </section>
       )}
 
-      {/* Ordered Requests */}
-      {orderedRequests.length > 0 && (
+      {/* Ordered Requests - Grouped by Property */}
+      {orderedGroups.length > 0 && (
         <section>
           <div className="flex items-center gap-2 mb-4">
             <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
@@ -373,12 +338,12 @@ export function SupplyRequestList({
               Awaiting Delivery
             </h2>
             <span className="ml-auto text-sm text-blue-600 font-medium">
-              {orderedRequests.length} on order
+              {orderedRequests.length} items across {orderedGroups.length} properties
             </span>
           </div>
-          <div className="space-y-3">
-            {orderedRequests.map((request) => (
-              <OrderedRequestCard key={request._id} request={request} />
+          <div className="space-y-4">
+            {orderedGroups.map((group) => (
+              <OrderedPropertyCard key={group.propertyId} group={group} onUpdate={handleUpdate} />
             ))}
           </div>
         </section>
@@ -409,11 +374,23 @@ export function SupplyRequestList({
           {showCompleted && (
             <div className="space-y-2">
               {completedRequests.slice(0, 10).map((request) => (
-                <CompletedRequestCard key={request._id} request={request} />
+                <div key={request._id} className="flex items-center gap-3 p-3 bg-zinc-50 rounded-lg">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-zinc-600">{request.itemName}</p>
+                    <p className="text-xs text-zinc-400">{request.propertyName}</p>
+                  </div>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    request.status === 'cancelled'
+                      ? "bg-zinc-200 text-zinc-600"
+                      : "bg-emerald-100 text-emerald-700"
+                  }`}>
+                    {request.status === 'cancelled' ? "Cancelled" : `+${request.orderQuantity} received`}
+                  </span>
+                </div>
               ))}
               {completedRequests.length > 10 && (
                 <p className="text-sm text-zinc-400 text-center py-2">
-                  +{completedRequests.length - 10} more completed requests
+                  +{completedRequests.length - 10} more
                 </p>
               )}
             </div>

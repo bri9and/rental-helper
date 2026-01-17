@@ -6,12 +6,22 @@ export interface IReportItem {
   restockedAmount: number;
 }
 
+export interface ICleaningChecklist {
+  bathrooms: boolean;
+  kitchen: boolean;
+  bedrooms: boolean;
+  livingSpace: boolean;
+}
+
 export interface ICleaningReport {
   propertyId: Types.ObjectId;
   cleanerId: string;
+  cleanerName?: string;
   date: Date;
   items: IReportItem[];
   notes?: string;
+  checklist?: ICleaningChecklist;
+  completedAt?: Date;
 }
 
 export interface ICleaningReportDocument extends ICleaningReport, Document {
@@ -28,13 +38,26 @@ const ReportItemSchema = new Schema<IReportItem>(
   { _id: false }
 );
 
+const CleaningChecklistSchema = new Schema<ICleaningChecklist>(
+  {
+    bathrooms: { type: Boolean, default: false },
+    kitchen: { type: Boolean, default: false },
+    bedrooms: { type: Boolean, default: false },
+    livingSpace: { type: Boolean, default: false },
+  },
+  { _id: false }
+);
+
 const CleaningReportSchema = new Schema<ICleaningReportDocument>(
   {
     propertyId: { type: Schema.Types.ObjectId, ref: 'Property', required: true },
     cleanerId: { type: String, required: true },
+    cleanerName: { type: String },
     date: { type: Date, default: Date.now },
     items: { type: [ReportItemSchema], default: [] },
     notes: { type: String },
+    checklist: { type: CleaningChecklistSchema },
+    completedAt: { type: Date },
   },
   {
     timestamps: true,

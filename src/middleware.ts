@@ -10,7 +10,46 @@ function isClerkConfigured() {
     !key.includes('your_');
 }
 
+function getSubdomain(host: string): string | null {
+  // Handle localhost for development
+  if (host.includes('localhost')) {
+    return null;
+  }
+
+  // Extract subdomain from host (e.g., cleaner.rental-helper.com -> cleaner)
+  const parts = host.split('.');
+  if (parts.length > 2) {
+    const subdomain = parts[0];
+    // Only recognize specific subdomains
+    if (['cleaner', 'admin'].includes(subdomain)) {
+      return subdomain;
+    }
+  }
+  return null;
+}
+
 export async function middleware(request: NextRequest, event: NextFetchEvent) {
+  const host = request.headers.get('host') || '';
+  const subdomain = getSubdomain(host);
+  const { pathname } = request.nextUrl;
+
+  // Handle subdomain routing
+  if (subdomain === 'cleaner') {
+    // Rewrite cleaner.rental-helper.com/* to /cleaner/*
+    if (!pathname.startsWith('/cleaner') && !pathname.startsWith('/_next') && !pathname.startsWith('/api')) {
+      const url = request.nextUrl.clone();
+      url.pathname = `/cleaner${pathname === '/' ? '' : pathname}`;
+      return NextResponse.rewrite(url);
+    }
+  } else if (subdomain === 'admin') {
+    // Rewrite admin.rental-helper.com/* to /admin/*
+    if (!pathname.startsWith('/admin') && !pathname.startsWith('/_next') && !pathname.startsWith('/api')) {
+      const url = request.nextUrl.clone();
+      url.pathname = `/admin${pathname === '/' ? '' : pathname}`;
+      return NextResponse.rewrite(url);
+    }
+  }
+
   // Skip Clerk middleware if not configured
   if (!isClerkConfigured()) {
     return NextResponse.next();
@@ -23,6 +62,7 @@ export async function middleware(request: NextRequest, event: NextFetchEvent) {
     '/',
     '/sign-in(.*)',
     '/sign-up(.*)',
+    '/cleaner(.*)',  // Cleaner routes are public (they use access codes)
   ]);
 
   const middleware = clerkMiddleware(async (auth, req) => {

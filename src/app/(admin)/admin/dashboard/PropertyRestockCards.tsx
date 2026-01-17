@@ -1,11 +1,9 @@
 'use client';
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { MapPin, RefreshCw, Loader2, Check, AlertTriangle, CheckCircle, Package } from "lucide-react";
+import { MapPin, AlertTriangle, CheckCircle, Package, ShoppingCart, ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
 import { Card, CardContent, Button } from "@/components/ui";
-import { autoRestockProperty } from "@/lib/actions/properties";
 import { PropertyStatus } from "./page";
 
 interface PropertyRestockCardsProps {
@@ -38,23 +36,7 @@ function StatusBadge({ status }: { status: 'good' | 'low' | 'critical' }) {
 }
 
 function PropertyCard({ property }: { property: PropertyStatus }) {
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<{ fulfilled: number; total: number } | null>(null);
-
-  const handleRestock = async () => {
-    setLoading(true);
-    setResult(null);
-
-    const res = await autoRestockProperty(property._id);
-
-    if (res.success && res.totalFulfilled !== undefined && res.totalRequested !== undefined) {
-      setResult({ fulfilled: res.totalFulfilled, total: res.totalRequested });
-      router.refresh();
-    }
-
-    setLoading(false);
-  };
+  const [expanded, setExpanded] = useState(false);
 
   const borderColor = {
     critical: 'border-rose-200',
@@ -98,72 +80,94 @@ function PropertyCard({ property }: { property: PropertyStatus }) {
 
         {/* Items needing attention */}
         {lowItems.length > 0 ? (
-          <div className="space-y-2 mb-4">
-            <p className="text-xs font-medium text-zinc-500 uppercase tracking-wide">Low Items</p>
-            <div className="flex flex-wrap gap-2">
-              {lowItems.slice(0, 4).map((item) => (
-                <div key={item.sku} className="flex items-center gap-2 bg-white border border-zinc-200 rounded-lg px-2 py-1">
-                  <div className="relative h-6 w-6 rounded overflow-hidden bg-zinc-100">
-                    <Image src={item.image} alt={item.name} fill className="object-cover" />
+          <div className="space-y-3">
+            <button
+              onClick={() => setExpanded(!expanded)}
+              className="w-full flex items-center justify-between text-xs font-medium text-zinc-500 uppercase tracking-wide hover:text-zinc-700"
+            >
+              <span>{lowItems.length} Items Need Restocking</span>
+              {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </button>
+
+            {expanded && (
+              <div className="space-y-2">
+                {lowItems.map((item) => (
+                  <LowItemRow key={item.sku} item={item} propertyAddress={property.address} />
+                ))}
+              </div>
+            )}
+
+            {!expanded && (
+              <div className="flex flex-wrap gap-2">
+                {lowItems.slice(0, 4).map((item) => (
+                  <div key={item.sku} className="flex items-center gap-2 bg-white border border-zinc-200 rounded-lg px-2 py-1">
+                    <div className="relative h-6 w-6 rounded overflow-hidden bg-zinc-100">
+                      <Image src={item.image} alt={item.name} fill className="object-cover" />
+                    </div>
+                    <span className="text-xs text-zinc-700">{item.currentCount}/{item.parLevel}</span>
                   </div>
-                  <span className="text-xs text-zinc-700">{item.currentCount}/{item.parLevel}</span>
-                </div>
-              ))}
-              {lowItems.length > 4 && (
-                <span className="text-xs text-zinc-500 self-center">+{lowItems.length - 4} more</span>
-              )}
-            </div>
+                ))}
+                {lowItems.length > 4 && (
+                  <span className="text-xs text-zinc-500 self-center">+{lowItems.length - 4} more</span>
+                )}
+              </div>
+            )}
           </div>
         ) : (
-          <div className="flex items-center gap-2 mb-4 p-2 bg-emerald-50 rounded-lg">
+          <div className="flex items-center gap-2 p-2 bg-emerald-50 rounded-lg">
             <CheckCircle className="h-4 w-4 text-emerald-600" />
             <span className="text-sm text-emerald-700">All items at or above par level</span>
           </div>
         )}
 
-        {/* Result message */}
-        {result && (
-          <div className="mb-3 p-2 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center gap-2">
-            <Check className="h-4 w-4 text-emerald-600" />
-            <span className="text-sm text-emerald-700">
-              Sent {result.fulfilled} of {result.total} items
-            </span>
-          </div>
-        )}
-
-        {/* Restock Button */}
-        <Button
-          onClick={handleRestock}
-          disabled={loading || property.items.length === 0}
-          className={`w-full font-medium ${
-            property.status === 'critical'
-              ? 'bg-rose-500 hover:bg-rose-600 text-white'
-              : property.status === 'low'
-              ? 'bg-amber-500 hover:bg-amber-600 text-white'
-              : 'bg-emerald-500 hover:bg-emerald-600 text-white'
-          }`}
-        >
-          {loading ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              Restocking...
-            </>
-          ) : (
-            <>
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Restock to Par Level
-            </>
-          )}
-        </Button>
-
         {/* Last report info */}
         {property.lastReport && (
-          <p className="text-xs text-zinc-400 text-center mt-2">
+          <p className="text-xs text-zinc-400 text-center mt-3">
             Last report: {new Date(property.lastReport).toLocaleDateString()}
           </p>
         )}
       </CardContent>
     </Card>
+  );
+}
+
+// Individual low item row with Amazon link
+function LowItemRow({ item, propertyAddress }: {
+  item: PropertyStatus['items'][0];
+  propertyAddress?: string;
+}) {
+  const needed = item.parLevel - item.currentCount;
+  const amazonUrl = item.amazonAsin
+    ? `https://www.amazon.com/dp/${item.amazonAsin}?qty=${needed}`
+    : null;
+
+  return (
+    <div className="flex items-center gap-3 p-2 bg-white border border-zinc-200 rounded-lg">
+      <div className="relative h-10 w-10 rounded-lg overflow-hidden bg-zinc-100 flex-shrink-0">
+        <Image src={item.image} alt={item.name} fill className="object-cover" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-zinc-900 truncate">{item.name}</p>
+        <p className="text-xs text-zinc-500">
+          Have {item.currentCount} / Need {item.parLevel}
+          <span className="text-amber-600 font-medium ml-1">(+{needed})</span>
+        </p>
+      </div>
+      {amazonUrl ? (
+        <a
+          href={amazonUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 text-white text-xs font-medium shadow-sm transition-all flex-shrink-0"
+        >
+          <ShoppingCart className="h-3.5 w-3.5" />
+          Buy
+          <ExternalLink className="h-3 w-3" />
+        </a>
+      ) : (
+        <span className="text-xs text-zinc-400 px-2">No link</span>
+      )}
+    </div>
   );
 }
 

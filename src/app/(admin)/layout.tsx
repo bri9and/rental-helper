@@ -4,11 +4,9 @@ import Link from "next/link";
 
 const navItems = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/inventory", label: "Inventory", icon: Package },
   { href: "/admin/properties", label: "Properties", icon: Home },
-  { href: "/admin/reports", label: "Reports", icon: ClipboardList },
   { href: "/admin/supply-requests", label: "Requests", icon: Bell },
-  { href: "/admin/shop", label: "Shop", icon: ShoppingCart },
+  { href: "/admin/reports", label: "Reports", icon: ClipboardList },
 ];
 
 export default function AdminLayout({
