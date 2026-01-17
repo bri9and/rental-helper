@@ -5,11 +5,13 @@ import dbConnect from '@/lib/db';
 import { getAuthUserId } from '@/lib/auth';
 import SupplyRequest, { ISupplyRequestDocument, SupplyRequestStatus } from '@/models/SupplyRequest';
 import WarehouseItem from '@/models/WarehouseItem';
+import Property from '@/models/Property';
 
 export type SupplyRequestSummary = {
   _id: string;
   propertyId: string;
   propertyName: string;
+  propertyAddress?: string;
   sku: string;
   itemName: string;
   requestedBy: string;
@@ -18,6 +20,7 @@ export type SupplyRequestSummary = {
   status: SupplyRequestStatus;
   orderQuantity?: number;
   notes?: string;
+  amazonAsin?: string;
   createdAt: string;
   orderedAt?: string;
   receivedAt?: string;
@@ -43,10 +46,23 @@ export async function getSupplyRequests(status?: SupplyRequestStatus): Promise<S
     .sort({ createdAt: -1 })
     .lean() as ISupplyRequestDocument[];
 
+  // Fetch Amazon ASINs for all SKUs and property addresses
+  const skus = [...new Set(requests.map(r => r.sku))];
+  const propertyIds = [...new Set(requests.map(r => r.propertyId.toString()))];
+
+  const [warehouseItems, properties] = await Promise.all([
+    WarehouseItem.find({ ownerId: userId, sku: { $in: skus } }).lean(),
+    Property.find({ _id: { $in: propertyIds } }).lean()
+  ]);
+
+  const asinMap = new Map(warehouseItems.map(i => [i.sku, i.amazonAsin]));
+  const propertyMap = new Map(properties.map(p => [p._id.toString(), p.address]));
+
   return requests.map((r) => ({
     _id: r._id.toString(),
     propertyId: r.propertyId.toString(),
     propertyName: r.propertyName,
+    propertyAddress: propertyMap.get(r.propertyId.toString()),
     sku: r.sku,
     itemName: r.itemName,
     requestedBy: r.requestedBy,
@@ -55,6 +71,7 @@ export async function getSupplyRequests(status?: SupplyRequestStatus): Promise<S
     status: r.status,
     orderQuantity: r.orderQuantity,
     notes: r.notes,
+    amazonAsin: asinMap.get(r.sku),
     createdAt: r.createdAt.toISOString(),
     orderedAt: r.orderedAt?.toISOString(),
     receivedAt: r.receivedAt?.toISOString(),

@@ -13,6 +13,8 @@ import {
   ChevronDown,
   ChevronUp,
   MapPin,
+  ShoppingCart,
+  ExternalLink,
 } from "lucide-react";
 import { Card, CardContent, Button, Input } from "@/components/ui";
 import {
@@ -21,6 +23,11 @@ import {
   cancelRequest,
   SupplyRequestSummary,
 } from "@/lib/actions/supply-requests";
+
+// Generate Amazon product URL from ASIN
+function getAmazonUrl(asin: string): string {
+  return `https://www.amazon.com/dp/${asin}`;
+}
 
 interface SupplyRequestListProps {
   pendingRequests: SupplyRequestSummary[];
@@ -94,10 +101,16 @@ function PendingRequestCard({ request }: { request: SupplyRequestSummary }) {
     setLoading(false);
   };
 
+  const handleBuyOnAmazon = () => {
+    if (request.amazonAsin) {
+      window.open(getAmazonUrl(request.amazonAsin), '_blank');
+    }
+  };
+
   return (
     <Card className="bg-white border-amber-100 shadow-sm hover:shadow-md transition-shadow">
       <CardContent className="p-4">
-        <div className="flex items-center gap-4">
+        <div className="flex items-start gap-4">
           {/* Item Image */}
           <div className="relative h-14 w-14 flex-shrink-0 rounded-xl bg-amber-50 border border-amber-100 overflow-hidden">
             <Image
@@ -119,55 +132,74 @@ function PendingRequestCard({ request }: { request: SupplyRequestSummary }) {
                 {request.propertyName}
               </p>
             </div>
+            {request.propertyAddress && (
+              <p className="text-xs text-zinc-400 truncate mt-0.5">
+                {request.propertyAddress}
+              </p>
+            )}
             <p className="text-xs text-amber-600 font-medium mt-1">
               Only {request.currentCount} left at property
             </p>
           </div>
 
           {/* Actions */}
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1">
+          <div className="flex flex-col gap-2">
+            {/* Amazon Buy Button */}
+            {request.amazonAsin && (
               <button
-                onClick={() => setOrderQuantity(String(Math.max(1, parseInt(orderQuantity) - 5)))}
-                className="h-8 w-8 rounded-lg bg-slate-100 text-slate-600 hover:bg-amber-100 hover:text-amber-600 text-sm font-bold transition-colors"
+                onClick={handleBuyOnAmazon}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 text-white text-sm font-medium shadow-sm transition-all"
               >
-                -
+                <ShoppingCart className="h-4 w-4" />
+                Buy on Amazon
+                <ExternalLink className="h-3 w-3" />
               </button>
-              <input
-                type="number"
-                min="1"
-                value={orderQuantity}
-                onChange={(e) => setOrderQuantity(e.target.value)}
-                className="h-8 w-14 rounded-lg border border-slate-200 bg-white text-center text-sm font-semibold text-zinc-800"
-              />
-              <button
-                onClick={() => setOrderQuantity(String(parseInt(orderQuantity) + 5))}
-                className="h-8 w-8 rounded-lg bg-slate-100 text-slate-600 hover:bg-amber-100 hover:text-amber-600 text-sm font-bold transition-colors"
+            )}
+
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setOrderQuantity(String(Math.max(1, parseInt(orderQuantity) - 5)))}
+                  className="h-8 w-8 rounded-lg bg-slate-100 text-slate-600 hover:bg-amber-100 hover:text-amber-600 text-sm font-bold transition-colors"
+                >
+                  -
+                </button>
+                <input
+                  type="number"
+                  min="1"
+                  value={orderQuantity}
+                  onChange={(e) => setOrderQuantity(e.target.value)}
+                  className="h-8 w-14 rounded-lg border border-slate-200 bg-white text-center text-sm font-semibold text-zinc-800"
+                />
+                <button
+                  onClick={() => setOrderQuantity(String(parseInt(orderQuantity) + 5))}
+                  className="h-8 w-8 rounded-lg bg-slate-100 text-slate-600 hover:bg-amber-100 hover:text-amber-600 text-sm font-bold transition-colors"
+                >
+                  +
+                </button>
+              </div>
+              <Button
+                onClick={handleOrder}
+                disabled={loading}
+                className="bg-amber-500 hover:bg-amber-600 text-white"
               >
-                +
+                {loading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    <Truck className="h-4 w-4 mr-1" />
+                    Mark Ordered
+                  </>
+                )}
+              </Button>
+              <button
+                onClick={handleCancel}
+                disabled={loading}
+                className="p-2 text-zinc-400 hover:text-rose-500 transition-colors"
+              >
+                <XCircle className="h-5 w-5" />
               </button>
             </div>
-            <Button
-              onClick={handleOrder}
-              disabled={loading}
-              className="bg-amber-500 hover:bg-amber-600 text-white"
-            >
-              {loading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <>
-                  <Truck className="h-4 w-4 mr-1" />
-                  Order
-                </>
-              )}
-            </Button>
-            <button
-              onClick={handleCancel}
-              disabled={loading}
-              className="p-2 text-zinc-400 hover:text-rose-500 transition-colors"
-            >
-              <XCircle className="h-5 w-5" />
-            </button>
           </div>
         </div>
         {error && (

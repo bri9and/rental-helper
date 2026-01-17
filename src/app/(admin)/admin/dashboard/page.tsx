@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic';
 
-import { Package, Home, AlertTriangle, Bell, RefreshCw, CheckCircle, Clock } from "lucide-react";
+import { Package, Home, AlertTriangle, Bell, RefreshCw, CheckCircle, Clock, ShoppingCart, ExternalLink, Warehouse } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
 import { SeedDemoButton } from "@/components/admin/SeedDemoButton";
 import { PropertyRestockCards } from "./PropertyRestockCards";
@@ -53,6 +53,16 @@ function getItemImage(sku: string): string {
   };
   return imageMap[sku] || '/items/default.png';
 }
+
+export type LowStockItem = {
+  _id: string;
+  name: string;
+  sku: string;
+  quantity: number;
+  lowStockThreshold: number;
+  parLevel: number;
+  amazonAsin?: string;
+};
 
 async function getManagerDashboard() {
   await dbConnect();
@@ -134,23 +144,38 @@ async function getManagerDashboard() {
     return order[a.status] - order[b.status];
   });
 
-  // Count warehouse low stock
-  const lowStockWarehouse = warehouseItems.filter(i => i.quantity <= i.lowStockThreshold).length;
+  // Get warehouse low stock items with Amazon ASINs
+  const lowStockWarehouseItems: LowStockItem[] = warehouseItems
+    .filter(i => i.quantity <= i.lowStockThreshold)
+    .map(i => ({
+      _id: i._id.toString(),
+      name: i.name,
+      sku: i.sku,
+      quantity: i.quantity,
+      lowStockThreshold: i.lowStockThreshold,
+      parLevel: i.parLevel,
+      amazonAsin: i.amazonAsin,
+    }))
+    .sort((a, b) => a.quantity - b.quantity); // Most critical first
 
   return {
     properties: propertyStatuses,
     pendingRequests: pendingRequests.map(r => ({
       _id: r._id.toString(),
       propertyName: r.propertyName,
+      propertyAddress: properties.find(p => p._id.toString() === r.propertyId?.toString())?.address,
+      sku: r.sku,
       itemName: r.itemName,
       currentCount: r.currentCount,
+      amazonAsin: itemMap.get(r.sku)?.amazonAsin,
       createdAt: r.createdAt,
     })),
+    lowStockWarehouse: lowStockWarehouseItems,
     stats: {
       totalProperties: properties.length,
       propertiesNeedingAttention: propertyStatuses.filter(p => p.status !== 'good').length,
       pendingRequestsCount: pendingRequests.length,
-      lowStockWarehouse,
+      lowStockWarehouseCount: lowStockWarehouseItems.length,
     }
   };
 }
@@ -241,12 +266,12 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className={data.stats.lowStockWarehouse > 0 ? "border-rose-200 bg-rose-50" : ""}>
+        <Card className={data.stats.lowStockWarehouseCount > 0 ? "border-rose-200 bg-rose-50" : ""}>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <Package className="h-8 w-8 text-rose-500" />
               <div>
-                <p className="text-2xl font-bold text-zinc-900">{data.stats.lowStockWarehouse}</p>
+                <p className="text-2xl font-bold text-zinc-900">{data.stats.lowStockWarehouseCount}</p>
                 <p className="text-xs text-zinc-600">Low in Warehouse</p>
               </div>
             </div>
@@ -272,16 +297,86 @@ export default async function DashboardPage() {
             <div className="space-y-2">
               {data.pendingRequests.map((req) => (
                 <div key={req._id} className="flex items-center justify-between bg-white rounded-lg p-3 border border-blue-100">
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <p className="font-medium text-zinc-900">{req.itemName}</p>
                     <p className="text-sm text-zinc-500">{req.propertyName} • Only {req.currentCount} left</p>
+                    {req.propertyAddress && (
+                      <p className="text-xs text-zinc-400 truncate">{req.propertyAddress}</p>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-zinc-500">
-                    <Clock className="h-4 w-4" />
-                    {new Date(req.createdAt).toLocaleDateString()}
+                  <div className="flex items-center gap-3">
+                    {req.amazonAsin && (
+                      <a
+                        href={`https://www.amazon.com/dp/${req.amazonAsin}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 text-white text-sm font-medium shadow-sm transition-all"
+                      >
+                        <ShoppingCart className="h-3.5 w-3.5" />
+                        Buy
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    )}
+                    <div className="flex items-center gap-2 text-sm text-zinc-500">
+                      <Clock className="h-4 w-4" />
+                      {new Date(req.createdAt).toLocaleDateString()}
+                    </div>
                   </div>
                 </div>
               ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Warehouse Low Stock */}
+      {data.lowStockWarehouse.length > 0 && (
+        <Card className="border-rose-200 bg-gradient-to-r from-rose-50 to-orange-50">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-rose-800">
+              <Warehouse className="h-5 w-5" />
+              Warehouse Low Stock
+              <span className="ml-auto text-sm font-normal">
+                <Link href="/admin/inventory" className="text-rose-600 hover:underline">
+                  View inventory →
+                </Link>
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="space-y-2">
+              {data.lowStockWarehouse.slice(0, 5).map((item) => (
+                <div key={item._id} className="flex items-center justify-between bg-white rounded-lg p-3 border border-rose-100">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-zinc-900">{item.name}</p>
+                    <p className="text-sm text-rose-600">
+                      {item.quantity} left • Reorder at {item.lowStockThreshold}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {item.amazonAsin && (
+                      <a
+                        href={`https://www.amazon.com/dp/${item.amazonAsin}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 text-white text-sm font-medium shadow-sm transition-all"
+                      >
+                        <ShoppingCart className="h-3.5 w-3.5" />
+                        Buy on Amazon
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    )}
+                    <span className="text-sm text-rose-500 font-medium">
+                      Need {item.parLevel - item.quantity}
+                    </span>
+                  </div>
+                </div>
+              ))}
+              {data.lowStockWarehouse.length > 5 && (
+                <p className="text-sm text-zinc-500 text-center py-2">
+                  +{data.lowStockWarehouse.length - 5} more items low in stock
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>

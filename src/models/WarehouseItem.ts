@@ -13,6 +13,7 @@ export interface IWarehouseItem {
   parLevel: number;
   lowStockThreshold: number;
   costPerUnit?: number;
+  amazonAsin?: string;
   burnRateHistory: IBurnRateEntry[];
 }
 
@@ -38,6 +39,7 @@ const WarehouseItemSchema = new Schema<IWarehouseItemDocument>(
     parLevel: { type: Number, default: 10 },
     lowStockThreshold: { type: Number, default: 5 },
     costPerUnit: { type: Number },
+    amazonAsin: { type: String },
     burnRateHistory: { type: [BurnRateEntrySchema], default: [] },
   },
   {
