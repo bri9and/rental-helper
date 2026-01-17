@@ -28,6 +28,13 @@ function getAmazonUrl(asin: string, qty: number = 1): string {
   return `https://www.amazon.com/dp/${asin}?qty=${qty}`;
 }
 
+function getAmazonCartUrl(items: { asin: string; qty: number }[]): string {
+  const params = items
+    .map((item, i) => `ASIN.${i + 1}=${item.asin}&Quantity.${i + 1}=${item.qty}`)
+    .join('&');
+  return `https://www.amazon.com/gp/aws/cart/add.html?${params}`;
+}
+
 interface SupplyRequestListProps {
   pendingRequests: SupplyRequestSummary[];
   orderedRequests: SupplyRequestSummary[];
@@ -58,85 +65,29 @@ function groupByProperty(requests: SupplyRequestSummary[]) {
   return Object.values(groups).sort((a, b) => a.propertyName.localeCompare(b.propertyName));
 }
 
-function PendingItemRow({ request, onUpdate }: {
+function PendingItemRow({ request, quantity, onQuantityChange, onRemove }: {
   request: SupplyRequestSummary;
-  onUpdate: () => void;
+  quantity: number;
+  onQuantityChange: (qty: number) => void;
+  onRemove: () => void;
 }) {
-  const [quantity, setQuantity] = useState(10);
-  const [loading, setLoading] = useState(false);
-
-  const handleBuyAndMark = async () => {
-    if (request.amazonAsin) {
-      window.open(getAmazonUrl(request.amazonAsin, quantity), '_blank');
-    }
-    setLoading(true);
-    await markAsOrdered(request._id, quantity);
-    onUpdate();
-    setLoading(false);
-  };
-
-  const handleCancel = async () => {
-    setLoading(true);
-    await cancelRequest(request._id);
-    onUpdate();
-    setLoading(false);
-  };
-
   return (
-    <div className="flex items-center gap-3 py-3 border-b border-zinc-100 last:border-0">
-      <div className="flex-1 min-w-0">
-        <p className="font-medium text-zinc-900 truncate">{request.itemName}</p>
-        <p className="text-xs text-zinc-500">
-          {request.requestedByName ? `Reported by ${request.requestedByName}` : 'Low stock reported'}
-        </p>
+    <div className="flex items-center gap-2 py-2 border-b border-zinc-100 last:border-0">
+      <div className="flex-1">
+        <p className="text-sm text-zinc-900">{request.itemName}</p>
       </div>
-
-      {/* Quantity selector */}
-      <div className="flex items-center gap-1">
-        <button
-          onClick={() => setQuantity(Math.max(1, quantity - 1))}
-          className="h-7 w-7 rounded bg-zinc-100 text-zinc-600 hover:bg-zinc-200 text-sm font-bold"
-        >
-          -
-        </button>
-        <input
-          type="number"
-          min="1"
-          value={quantity}
-          onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-          className="h-7 w-12 rounded border border-zinc-200 text-center text-sm font-semibold"
-        />
-        <button
-          onClick={() => setQuantity(quantity + 1)}
-          className="h-7 w-7 rounded bg-zinc-100 text-zinc-600 hover:bg-zinc-200 text-sm font-bold"
-        >
-          +
-        </button>
-      </div>
-
-      {/* Buy button */}
+      <input
+        type="number"
+        min="1"
+        value={quantity}
+        onChange={(e) => onQuantityChange(Math.max(1, parseInt(e.target.value) || 1))}
+        className="h-8 w-16 rounded border border-zinc-200 text-center text-sm"
+      />
       <button
-        onClick={handleBuyAndMark}
-        disabled={loading}
-        className="flex items-center gap-1 px-2 py-1 rounded bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs font-medium disabled:opacity-50"
+        onClick={onRemove}
+        className="p-1 text-zinc-400 hover:text-rose-500"
       >
-        {loading ? (
-          <Loader2 className="h-3 w-3 animate-spin" />
-        ) : (
-          <>
-            {request.amazonAsin ? <ShoppingCart className="h-3 w-3" /> : <Truck className="h-3 w-3" />}
-            Buy
-          </>
-        )}
-      </button>
-
-      {/* Cancel */}
-      <button
-        onClick={handleCancel}
-        disabled={loading}
-        className="p-1.5 text-zinc-400 hover:text-rose-500"
-      >
-        <XCircle className="h-5 w-5" />
+        <XCircle className="h-4 w-4" />
       </button>
     </div>
   );
@@ -146,45 +97,89 @@ function PropertyRequestCard({ group, onUpdate }: {
   group: { propertyId: string; propertyName: string; propertyAddress?: string; requests: SupplyRequestSummary[] };
   onUpdate: () => void;
 }) {
-  const [expanded, setExpanded] = useState(true);
+  const [quantities, setQuantities] = useState<Record<string, number>>(() =>
+    Object.fromEntries(group.requests.map(r => [r._id, 10]))
+  );
+  const [loading, setLoading] = useState(false);
+
+  const handleQuantityChange = (id: string, qty: number) => {
+    setQuantities(prev => ({ ...prev, [id]: qty }));
+  };
+
+  const handleRemove = async (id: string) => {
+    await cancelRequest(id);
+    onUpdate();
+  };
+
+  const handleAddAllToCart = async () => {
+    const itemsWithAsin = group.requests.filter(r => r.amazonAsin);
+    if (itemsWithAsin.length > 0) {
+      const cartItems = itemsWithAsin.map(r => ({
+        asin: r.amazonAsin!,
+        qty: quantities[r._id] || 10
+      }));
+      window.open(getAmazonCartUrl(cartItems), '_blank');
+    }
+
+    // Mark all as ordered
+    setLoading(true);
+    await Promise.all(
+      group.requests.map(r => markAsOrdered(r._id, quantities[r._id] || 10))
+    );
+    onUpdate();
+    setLoading(false);
+  };
+
+  const itemsWithAsin = group.requests.filter(r => r.amazonAsin);
 
   return (
     <Card className="bg-white border-zinc-200 shadow-sm">
-      <CardContent className="p-0">
+      <CardContent className="p-4">
         {/* Property Header */}
-        <button
-          onClick={() => setExpanded(!expanded)}
-          className="w-full flex items-center gap-3 p-4 hover:bg-zinc-50 transition-colors"
-        >
+        <div className="flex items-center gap-3 mb-3">
           <div className="h-10 w-10 rounded-xl bg-zinc-100 flex items-center justify-center flex-shrink-0">
             <Home className="h-5 w-5 text-zinc-600" />
           </div>
-          <div className="flex-1 text-left min-w-0">
+          <div className="flex-1 min-w-0">
             <p className="font-semibold text-zinc-900">{group.propertyName}</p>
             {group.propertyAddress && (
               <p className="text-xs text-zinc-500 truncate">{group.propertyAddress}</p>
             )}
           </div>
-          <span className="px-2 py-1 rounded-full bg-zinc-100 text-zinc-600 text-xs font-medium">
-            {group.requests.length} item{group.requests.length > 1 ? 's' : ''}
-          </span>
-          {expanded ? (
-            <ChevronUp className="h-5 w-5 text-zinc-400" />
+        </div>
+
+        {/* Items list */}
+        <div className="border border-zinc-200 rounded-lg p-3 mb-3">
+          <div className="flex items-center justify-between text-xs text-zinc-500 mb-2 pb-2 border-b border-zinc-100">
+            <span>Item</span>
+            <span>Qty</span>
+          </div>
+          {group.requests.map((request) => (
+            <PendingItemRow
+              key={request._id}
+              request={request}
+              quantity={quantities[request._id] || 10}
+              onQuantityChange={(qty) => handleQuantityChange(request._id, qty)}
+              onRemove={() => handleRemove(request._id)}
+            />
+          ))}
+        </div>
+
+        {/* Add to Cart button */}
+        <button
+          onClick={handleAddAllToCart}
+          disabled={loading || itemsWithAsin.length === 0}
+          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
-            <ChevronDown className="h-5 w-5 text-zinc-400" />
+            <>
+              <ShoppingCart className="h-4 w-4" />
+              Add {itemsWithAsin.length} items to Amazon Cart
+            </>
           )}
         </button>
-
-        {/* Items */}
-        {expanded && (
-          <div className="px-4 pb-4">
-            <div className="bg-zinc-50 rounded-lg p-3">
-              {group.requests.map((request) => (
-                <PendingItemRow key={request._id} request={request} onUpdate={onUpdate} />
-              ))}
-            </div>
-          </div>
-        )}
       </CardContent>
     </Card>
   );
