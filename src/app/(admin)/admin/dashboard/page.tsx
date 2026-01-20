@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic';
 
-import { Home, AlertTriangle, Bell, RefreshCw, CheckCircle, Clock, ShoppingCart, ExternalLink } from "lucide-react";
+import { Home, AlertTriangle, Bell, RefreshCw, CheckCircle, Clock, ShoppingCart } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
 import { SeedDemoButton } from "@/components/admin/SeedDemoButton";
 import { PropertyRestockCards } from "./PropertyRestockCards";
@@ -138,16 +138,24 @@ async function getManagerDashboard() {
 
   return {
     properties: propertyStatuses,
-    pendingRequests: pendingRequests.map(r => ({
-      _id: r._id.toString(),
-      propertyName: r.propertyName,
-      propertyAddress: properties.find(p => p._id.toString() === r.propertyId?.toString())?.address,
-      sku: r.sku,
-      itemName: r.itemName,
-      currentCount: r.currentCount,
-      amazonAsin: itemMap.get(r.sku)?.amazonAsin,
-      createdAt: r.createdAt,
-    })),
+    pendingRequests: pendingRequests.map(r => {
+      const property = properties.find(p => p._id.toString() === r.propertyId?.toString());
+      const setting = property?.inventorySettings?.find((s: { itemSku: string }) => s.itemSku === r.sku);
+      const parLevel = setting?.parLevel || 10;
+      const needed = Math.max(1, parLevel - r.currentCount);
+      return {
+        _id: r._id.toString(),
+        propertyName: r.propertyName,
+        propertyAddress: property?.address,
+        sku: r.sku,
+        itemName: r.itemName,
+        currentCount: r.currentCount,
+        parLevel,
+        needed,
+        amazonAsin: itemMap.get(r.sku)?.amazonAsin,
+        createdAt: r.createdAt,
+      };
+    }),
     stats: {
       totalProperties: properties.length,
       propertiesNeedingAttention: propertyStatuses.filter(p => p.status !== 'good').length,
@@ -271,14 +279,13 @@ export default async function DashboardPage() {
                   <div className="flex items-center gap-3">
                     {req.amazonAsin && (
                       <a
-                        href={`https://www.amazon.com/dp/${req.amazonAsin}?qty=10`}
+                        href={`https://www.amazon.com/dp/${req.amazonAsin}?qty=${req.needed}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 text-white text-sm font-medium shadow-sm transition-all"
+                        className="flex items-center gap-1 px-2 py-1 rounded bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs font-medium"
                       >
-                        <ShoppingCart className="h-3.5 w-3.5" />
-                        Buy
-                        <ExternalLink className="h-3 w-3" />
+                        <ShoppingCart className="h-3 w-3" />
+                        Buy {req.needed}
                       </a>
                     )}
                     <div className="flex items-center gap-2 text-sm text-zinc-500">

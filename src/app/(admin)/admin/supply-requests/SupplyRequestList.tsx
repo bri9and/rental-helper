@@ -98,7 +98,7 @@ function PropertyRequestCard({ group, onUpdate }: {
   onUpdate: () => void;
 }) {
   const [quantities, setQuantities] = useState<Record<string, number>>(() =>
-    Object.fromEntries(group.requests.map(r => [r._id, 10]))
+    Object.fromEntries(group.requests.map(r => [r._id, r.needed]))
   );
   const [loading, setLoading] = useState(false);
 
@@ -116,7 +116,7 @@ function PropertyRequestCard({ group, onUpdate }: {
     if (itemsWithAsin.length > 0) {
       const cartItems = itemsWithAsin.map(r => ({
         asin: r.amazonAsin!,
-        qty: quantities[r._id] || 10
+        qty: quantities[r._id] || r.needed
       }));
       window.open(getAmazonCartUrl(cartItems), '_blank');
     }
@@ -124,7 +124,7 @@ function PropertyRequestCard({ group, onUpdate }: {
     // Mark all as ordered
     setLoading(true);
     await Promise.all(
-      group.requests.map(r => markAsOrdered(r._id, quantities[r._id] || 10))
+      group.requests.map(r => markAsOrdered(r._id, quantities[r._id] || r.needed))
     );
     onUpdate();
     setLoading(false);
@@ -158,7 +158,7 @@ function PropertyRequestCard({ group, onUpdate }: {
             <PendingItemRow
               key={request._id}
               request={request}
-              quantity={quantities[request._id] || 10}
+              quantity={quantities[request._id] || request.needed}
               onQuantityChange={(qty) => handleQuantityChange(request._id, qty)}
               onRemove={() => handleRemove(request._id)}
             />

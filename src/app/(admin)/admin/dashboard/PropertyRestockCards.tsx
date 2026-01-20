@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { MapPin, AlertTriangle, CheckCircle, Package, ShoppingCart, ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
+import { MapPin, AlertTriangle, CheckCircle, Package, ShoppingCart, ChevronDown, ChevronUp } from "lucide-react";
 import { Card, CardContent, Button } from "@/components/ui";
 import { PropertyStatus } from "./page";
 
@@ -158,11 +158,10 @@ function LowItemRow({ item, propertyAddress }: {
           href={amazonUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 text-white text-xs font-medium shadow-sm transition-all flex-shrink-0"
+          className="flex items-center gap-1 px-2 py-1 rounded bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs font-medium flex-shrink-0"
         >
-          <ShoppingCart className="h-3.5 w-3.5" />
-          Buy
-          <ExternalLink className="h-3 w-3" />
+          <ShoppingCart className="h-3 w-3" />
+          Buy {needed}
         </a>
       ) : (
         <span className="text-xs text-zinc-400 px-2">No link</span>

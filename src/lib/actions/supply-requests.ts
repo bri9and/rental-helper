@@ -17,6 +17,8 @@ export type SupplyRequestSummary = {
   requestedBy: string;
   requestedByName?: string;
   currentCount: number;
+  parLevel: number;
+  needed: number;
   status: SupplyRequestStatus;
   orderQuantity?: number;
   notes?: string;
@@ -56,26 +58,35 @@ export async function getSupplyRequests(status?: SupplyRequestStatus): Promise<S
   ]);
 
   const asinMap = new Map(warehouseItems.map(i => [i.sku, i.amazonAsin]));
-  const propertyMap = new Map(properties.map(p => [p._id.toString(), p.address]));
+  const propertyDataMap = new Map(properties.map(p => [p._id.toString(), p]));
 
-  return requests.map((r) => ({
-    _id: r._id.toString(),
-    propertyId: r.propertyId.toString(),
-    propertyName: r.propertyName,
-    propertyAddress: propertyMap.get(r.propertyId.toString()),
-    sku: r.sku,
-    itemName: r.itemName,
-    requestedBy: r.requestedBy,
-    requestedByName: r.requestedByName,
-    currentCount: r.currentCount,
-    status: r.status,
-    orderQuantity: r.orderQuantity,
-    notes: r.notes,
-    amazonAsin: asinMap.get(r.sku),
-    createdAt: r.createdAt.toISOString(),
-    orderedAt: r.orderedAt?.toISOString(),
-    receivedAt: r.receivedAt?.toISOString(),
-  }));
+  return requests.map((r) => {
+    const property = propertyDataMap.get(r.propertyId.toString());
+    const setting = property?.inventorySettings?.find((s: { itemSku: string }) => s.itemSku === r.sku);
+    const parLevel = setting?.parLevel || 10;
+    const needed = Math.max(1, parLevel - r.currentCount);
+
+    return {
+      _id: r._id.toString(),
+      propertyId: r.propertyId.toString(),
+      propertyName: r.propertyName,
+      propertyAddress: property?.address,
+      sku: r.sku,
+      itemName: r.itemName,
+      requestedBy: r.requestedBy,
+      requestedByName: r.requestedByName,
+      currentCount: r.currentCount,
+      parLevel,
+      needed,
+      status: r.status,
+      orderQuantity: r.orderQuantity,
+      notes: r.notes,
+      amazonAsin: asinMap.get(r.sku),
+      createdAt: r.createdAt.toISOString(),
+      orderedAt: r.orderedAt?.toISOString(),
+      receivedAt: r.receivedAt?.toISOString(),
+    };
+  });
 }
 
 /**
