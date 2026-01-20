@@ -209,47 +209,53 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Quick Stats */}
+      {/* Quick Stats - Clickable */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className={data.stats.propertiesNeedingAttention > 0 ? "border-amber-200 bg-amber-50" : "border-emerald-200 bg-emerald-50"}>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              {data.stats.propertiesNeedingAttention > 0 ? (
-                <AlertTriangle className="h-8 w-8 text-amber-600" />
-              ) : (
-                <CheckCircle className="h-8 w-8 text-emerald-600" />
-              )}
-              <div>
-                <p className="text-2xl font-bold text-zinc-900">{data.stats.propertiesNeedingAttention}</p>
-                <p className="text-xs text-zinc-600">Need Attention</p>
+        <Link href="/admin/properties">
+          <Card className={`cursor-pointer hover:shadow-md transition-shadow ${data.stats.propertiesNeedingAttention > 0 ? "border-amber-200 bg-amber-50 hover:border-amber-300" : "border-emerald-200 bg-emerald-50 hover:border-emerald-300"}`}>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                {data.stats.propertiesNeedingAttention > 0 ? (
+                  <AlertTriangle className="h-8 w-8 text-amber-600" />
+                ) : (
+                  <CheckCircle className="h-8 w-8 text-emerald-600" />
+                )}
+                <div>
+                  <p className="text-2xl font-bold text-zinc-900">{data.stats.propertiesNeedingAttention}</p>
+                  <p className="text-xs text-zinc-600">Need Attention</p>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <Home className="h-8 w-8 text-zinc-400" />
-              <div>
-                <p className="text-2xl font-bold text-zinc-900">{data.stats.totalProperties}</p>
-                <p className="text-xs text-zinc-600">Properties</p>
+        <Link href="/admin/properties">
+          <Card className="cursor-pointer hover:shadow-md hover:border-zinc-300 transition-shadow">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <Home className="h-8 w-8 text-zinc-400" />
+                <div>
+                  <p className="text-2xl font-bold text-zinc-900">{data.stats.totalProperties}</p>
+                  <p className="text-xs text-zinc-600">Properties</p>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <Card className={data.stats.pendingRequestsCount > 0 ? "border-blue-200 bg-blue-50" : ""}>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <Bell className="h-8 w-8 text-blue-500" />
-              <div>
-                <p className="text-2xl font-bold text-zinc-900">{data.stats.pendingRequestsCount}</p>
-                <p className="text-xs text-zinc-600">Supply Requests</p>
+        <Link href="/admin/supply-requests">
+          <Card className={`cursor-pointer hover:shadow-md transition-shadow ${data.stats.pendingRequestsCount > 0 ? "border-blue-200 bg-blue-50 hover:border-blue-300" : "hover:border-zinc-300"}`}>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <Bell className="h-8 w-8 text-blue-500" />
+                <div>
+                  <p className="text-2xl font-bold text-zinc-900">{data.stats.pendingRequestsCount}</p>
+                  <p className="text-xs text-zinc-600">Supply Requests</p>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
       {/* Pending Supply Requests */}
