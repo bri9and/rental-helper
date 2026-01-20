@@ -1,10 +1,16 @@
 # Claude Session Coordination
 
-Last updated: 2026-01-19
-Current version: 1.4005
+Last updated: 2026-01-20
+Current version: 1.4010
 
 ## Project: Rental Helper
 Inventory management system for short-term rental properties.
+
+### Production
+- **Domain**: https://rental-helper.com
+- **Webhook URL**: https://rental-helper.com/api/stripe/webhook
+- **GitHub**: https://github.com/bri9and/rental-helper
+- **Deployed on**: Vercel
 
 ### Two Apps
 1. **Owner/Operator App** (`/admin/*`) - Dashboard, properties, supply requests, reports
@@ -13,18 +19,11 @@ Inventory management system for short-term rental properties.
 ### Key Conventions
 
 - **QA Required**: Always run a QA sub-agent before telling user to test
-- **Version Numbers**: Increment by 0.0001 in package.json with each deploy (currently 1.4003)
+- **Version Numbers**: Increment by 0.0001 in package.json with each deploy
 - **Amazon URLs**: Use calculated quantities `?qty=${needed}` where `needed = parLevel - currentCount`
-- **Styling**: Minimal, neutral colors (zinc/slate), avoid orange, small buttons
+- **Amazon Affiliate Tag**: `rentalhelper-20`
+- **Styling**: Emerald-700 primary (WCAG AA compliant), zinc for text, minimal UI
 - **No Warehouse Page**: Warehouse functionality was removed, items managed per-property
-
-### Recent Changes (Session A)
-
-- [x] Property detail page at `/admin/properties/[id]`
-- [x] Property cards link to detail page
-- [x] Supply requests show calculated Buy quantities
-- [x] Version number displayed in bottom-right corner
-- [x] Simplified supply request UI (smaller buttons, just "Buy")
 
 ### Tech Stack
 
@@ -32,9 +31,17 @@ Inventory management system for short-term rental properties.
 - React 19
 - MongoDB/Mongoose
 - Clerk Auth
-- Stripe payments
+- Stripe Payments (14-day trial)
 - Tailwind CSS v4
-- Deployed on Vercel
+- Vercel deployment
+
+### Stripe Plans
+
+| Plan | Price | Properties | Price ID Env Var |
+|------|-------|------------|------------------|
+| Starter | $24.95/mo | 1-5 | STRIPE_STARTER_PRICE_ID |
+| Pro | $49.95/mo | 6-10 | STRIPE_PROFESSIONAL_PRICE_ID |
+| Max | $99.95/mo | 11-25 | STRIPE_ENTERPRISE_PRICE_ID |
 
 ### File Structure
 
@@ -43,41 +50,45 @@ src/
   app/
     (admin)/          # Owner app (requires auth)
       admin/
-        dashboard/
+        dashboard/    # PropertyRestockCards with cart preview
         properties/
-          [id]/       # NEW: Property detail page
+          [id]/       # Property detail page
         supply-requests/
         reports/
         settings/
       layout.tsx      # Admin layout with nav
     (cleaner)/        # Cleaner app
-    page.tsx          # Landing page
+    api/
+      stripe/
+        checkout/     # Creates Stripe checkout sessions
+        webhook/      # Handles subscription events
+        portal/       # Customer billing portal
+    pricing/          # Pricing page
+    page.tsx          # Landing page (problem-first marketing)
   lib/
     actions/          # Server actions
+    stripe.ts         # Stripe client + plan definitions
+    amazon.ts         # Amazon URL utilities
     db.ts             # MongoDB connection
     auth.ts           # Auth helpers
-  models/             # Mongoose models
-  components/ui/      # Shared UI components
+  models/
+    Subscription.ts   # Stripe subscription storage
+  components/
+    layout/
+      SiteHeader.tsx  # Shared header with version number
+    ui/               # Shared UI components
 ```
 
-### Current Session Tasks
+### Recent Changes (2026-01-20)
 
-**Session A (this file's author):**
-- Property detail page - COMPLETE
-- Available for new tasks
-
-**Session B:**
-- Active as of 2026-01-19
-- [x] Comprehensive site-wide standardization - COMPLETE
-- [x] Created shared SiteHeader component with version number
-- [x] Standardized all colors to zinc/slate (removed sky, orange)
-- [x] Updated all layouts to use shared header
-- [x] Fixed Amazon URLs to include affiliate tag everywhere
-- [x] Centralized Amazon URL utility in src/lib/amazon.ts
-- [x] Standardized Button component to zinc-900 primary
-- [x] Updated version to 1.4004
-- [x] QA Agent #1 - Found 4 issues, all fixed
-- [x] QA Agent #2 - All checks passed, ready for user testing
+- [x] v1.4008 - Accessibility fix (emerald-600 → emerald-700 for WCAG AA)
+- [x] v1.4008 - New hero: "Your Rentals, Always Guest-Ready"
+- [x] v1.4009 - Problem-first feature section ("Sound Familiar?")
+- [x] v1.4009 - Concrete "How It Works" with mini UI previews
+- [x] v1.4010 - Cart preview modal for restock flow
+- [x] v1.4010 - Clickable dashboard stat cards (link to Properties/Supply Requests)
+- [x] v1.4010 - Property cards link to detail page
+- [x] NAT creative team research for demo experience (see DEMO_PLAN.md)
 
 ---
 
