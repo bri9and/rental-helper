@@ -1,6 +1,6 @@
 {
   "name": "rental-helper",
-  "version": "1.4002",
+  "version": "1.4003",
   "private": true,
   "scripts": {
     "dev": "next dev",

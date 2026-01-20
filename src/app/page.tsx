@@ -84,15 +84,7 @@ export default function LandingPage() {
               </p>
             </div>
 
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              <div className="group rounded-2xl bg-white p-6 border border-slate-200 hover:border-sky-300 hover:shadow-lg hover:shadow-sky-100/50 transition-all">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-sky-100 group-hover:scale-110 transition-transform">
-                  <Package className="h-6 w-6 text-sky-600" />
-                </div>
-                <h3 className="mt-4 text-lg font-semibold text-slate-800">Central Warehouse</h3>
-                <p className="mt-2 text-slate-500 leading-relaxed">Track your master inventory with real-time quantities, par levels, and automatic low-stock alerts.</p>
-              </div>
-
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               <div className="group rounded-2xl bg-white p-6 border border-slate-200 hover:border-violet-300 hover:shadow-lg hover:shadow-violet-100/50 transition-all">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-100 group-hover:scale-110 transition-transform">
                   <Home className="h-6 w-6 text-violet-600" />
@@ -107,14 +99,6 @@ export default function LandingPage() {
                 </div>
                 <h3 className="mt-4 text-lg font-semibold text-slate-800">Cleaner Checklists</h3>
                 <p className="mt-2 text-slate-500 leading-relaxed">Mobile-friendly checklists that cleaners can complete in minutes. Auto-sync to dashboard.</p>
-              </div>
-
-              <div className="group rounded-2xl bg-white p-6 border border-slate-200 hover:border-amber-300 hover:shadow-lg hover:shadow-amber-100/50 transition-all">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-100 group-hover:scale-110 transition-transform">
-                  <Sparkles className="h-6 w-6 text-amber-600" />
-                </div>
-                <h3 className="mt-4 text-lg font-semibold text-slate-800">AI-Powered Counting</h3>
-                <p className="mt-2 text-slate-500 leading-relaxed">Point your camera at supplies and let AI count them for you. No more manual tallying.</p>
               </div>
 
               <div className="group rounded-2xl bg-white p-6 border border-slate-200 hover:border-pink-300 hover:shadow-lg hover:shadow-pink-100/50 transition-all">

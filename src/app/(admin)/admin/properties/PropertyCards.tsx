@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { MapPin, RefreshCw, Loader2, Check } from "lucide-react";
+import Link from "next/link";
+import { MapPin, RefreshCw, Loader2, Check, ChevronRight } from "lucide-react";
 import { Card, CardContent, Button, Input } from "@/components/ui";
 import { PropertyWithItems, autoRestockProperty } from "@/lib/actions/properties";
 
@@ -45,20 +46,26 @@ function PropertyCard({ property }: { property: PropertyWithItems }) {
     <Card className="bg-white border-emerald-100 shadow-sm">
       <CardContent className="p-5">
         {/* Property Header */}
-        <div className="flex items-center justify-between mb-4 pb-3 border-b border-emerald-50">
+        <Link
+          href={`/admin/properties/${property._id}`}
+          className="flex items-center justify-between mb-4 pb-3 border-b border-emerald-50 hover:bg-emerald-50/50 -mx-5 -mt-5 px-5 pt-5 rounded-t-xl transition-colors"
+        >
           <div className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-full bg-emerald-100 flex items-center justify-center">
               <MapPin className="h-4 w-4 text-emerald-600" />
             </div>
             <h3 className="font-semibold text-zinc-800">{property.name}</h3>
           </div>
-          {result && (
-            <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full flex items-center gap-1">
-              <Check className="h-3 w-3" />
-              {result.fulfilled}/{result.total} sent
-            </span>
-          )}
-        </div>
+          <div className="flex items-center gap-2">
+            {result && (
+              <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full flex items-center gap-1">
+                <Check className="h-3 w-3" />
+                {result.fulfilled}/{result.total} sent
+              </span>
+            )}
+            <ChevronRight className="h-4 w-4 text-zinc-400" />
+          </div>
+        </Link>
 
         {/* Items Grid */}
         <div className="space-y-3">
