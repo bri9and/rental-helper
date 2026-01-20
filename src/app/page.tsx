@@ -64,49 +64,113 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Features Grid */}
+        {/* Features Grid - Problem First */}
         <section className="relative bg-white py-24 border-y border-zinc-200">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
               <h2 className="text-3xl font-bold text-zinc-900 sm:text-4xl">
-                Everything You Need
+                Sound Familiar?
               </h2>
               <p className="mt-4 text-zinc-500 text-lg">
-                From warehouse to property, we've got you covered.
+                Problems every rental host knows. Solutions that actually work.
               </p>
             </div>
 
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="group rounded-2xl bg-white p-6 border border-zinc-200 hover:border-zinc-300 hover:shadow-lg hover:shadow-zinc-100/50 transition-all">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-100 group-hover:scale-110 transition-transform">
-                  <Home className="h-6 w-6 text-zinc-600" />
+            <div className="grid gap-6 sm:grid-cols-2">
+              {/* Problem 1 */}
+              <div className="group rounded-2xl bg-gradient-to-br from-rose-50 to-white p-6 border border-rose-100 hover:shadow-lg transition-all">
+                <div className="flex items-start gap-4">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-rose-100 flex-shrink-0">
+                    <ClipboardList className="h-5 w-5 text-rose-600" />
+                  </div>
+                  <div>
+                    <p className="text-rose-700 text-sm font-medium mb-1">The Problem</p>
+                    <h3 className="text-lg font-semibold text-zinc-900">"My cleaner texted asking if there's toilet paper"</h3>
+                  </div>
                 </div>
-                <h3 className="mt-4 text-lg font-semibold text-zinc-900">Multi-Property Support</h3>
-                <p className="mt-2 text-zinc-500 leading-relaxed">Manage inventory across unlimited properties. Set custom par levels for each location.</p>
+                <div className="mt-4 pt-4 border-t border-rose-100">
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 flex-shrink-0">
+                      <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                    </div>
+                    <div>
+                      <p className="text-emerald-700 text-sm font-medium mb-1">The Solution</p>
+                      <p className="text-zinc-600">Cleaners use a mobile checklist to count supplies after each turnover. You see inventory in real-time.</p>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div className="group rounded-2xl bg-white p-6 border border-zinc-200 hover:border-zinc-300 hover:shadow-lg hover:shadow-zinc-100/50 transition-all">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-100 group-hover:scale-110 transition-transform">
-                  <ClipboardList className="h-6 w-6 text-zinc-600" />
+              {/* Problem 2 */}
+              <div className="group rounded-2xl bg-gradient-to-br from-amber-50 to-white p-6 border border-amber-100 hover:shadow-lg transition-all">
+                <div className="flex items-start gap-4">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 flex-shrink-0">
+                    <Bell className="h-5 w-5 text-amber-600" />
+                  </div>
+                  <div>
+                    <p className="text-amber-700 text-sm font-medium mb-1">The Problem</p>
+                    <h3 className="text-lg font-semibold text-zinc-900">"Guest complained there was no coffee"</h3>
+                  </div>
                 </div>
-                <h3 className="mt-4 text-lg font-semibold text-zinc-900">Cleaner Checklists</h3>
-                <p className="mt-2 text-zinc-500 leading-relaxed">Mobile-friendly checklists that cleaners can complete in minutes. Auto-sync to dashboard.</p>
+                <div className="mt-4 pt-4 border-t border-amber-100">
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 flex-shrink-0">
+                      <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                    </div>
+                    <div>
+                      <p className="text-emerald-700 text-sm font-medium mb-1">The Solution</p>
+                      <p className="text-zinc-600">Set par levels for each item. Get alerts before you run out—not after a bad review.</p>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div className="group rounded-2xl bg-white p-6 border border-zinc-200 hover:border-zinc-300 hover:shadow-lg hover:shadow-zinc-100/50 transition-all">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-100 group-hover:scale-110 transition-transform">
-                  <TrendingUp className="h-6 w-6 text-zinc-600" />
+              {/* Problem 3 */}
+              <div className="group rounded-2xl bg-gradient-to-br from-blue-50 to-white p-6 border border-blue-100 hover:shadow-lg transition-all">
+                <div className="flex items-start gap-4">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 flex-shrink-0">
+                    <Home className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-blue-700 text-sm font-medium mb-1">The Problem</p>
+                    <h3 className="text-lg font-semibold text-zinc-900">"I'm placing 5 separate Amazon orders for 5 properties"</h3>
+                  </div>
                 </div>
-                <h3 className="mt-4 text-lg font-semibold text-zinc-900">Burn Rate Analytics</h3>
-                <p className="mt-2 text-zinc-500 leading-relaxed">Understand consumption patterns. Get AI predictions on when you'll need to reorder.</p>
+                <div className="mt-4 pt-4 border-t border-blue-100">
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 flex-shrink-0">
+                      <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                    </div>
+                    <div>
+                      <p className="text-emerald-700 text-sm font-medium mb-1">The Solution</p>
+                      <p className="text-zinc-600">One dashboard shows all properties. One click adds everything to your Amazon cart.</p>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div className="group rounded-2xl bg-white p-6 border border-zinc-200 hover:border-zinc-300 hover:shadow-lg hover:shadow-zinc-100/50 transition-all">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-100 group-hover:scale-110 transition-transform">
-                  <Bell className="h-6 w-6 text-zinc-600" />
+              {/* Problem 4 */}
+              <div className="group rounded-2xl bg-gradient-to-br from-purple-50 to-white p-6 border border-purple-100 hover:shadow-lg transition-all">
+                <div className="flex items-start gap-4">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-100 flex-shrink-0">
+                    <TrendingUp className="h-5 w-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="text-purple-700 text-sm font-medium mb-1">The Problem</p>
+                    <h3 className="text-lg font-semibold text-zinc-900">"I have no idea how fast we go through supplies"</h3>
+                  </div>
                 </div>
-                <h3 className="mt-4 text-lg font-semibold text-zinc-900">Smart Alerts</h3>
-                <p className="mt-2 text-zinc-500 leading-relaxed">Get notified before you run out. Email alerts for low stock and unusual activity.</p>
+                <div className="mt-4 pt-4 border-t border-purple-100">
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 flex-shrink-0">
+                      <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                    </div>
+                    <div>
+                      <p className="text-emerald-700 text-sm font-medium mb-1">The Solution</p>
+                      <p className="text-zinc-600">Burn rate analytics show consumption patterns. AI predicts when you'll need to reorder.</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -120,34 +184,69 @@ export default function LandingPage() {
                 How It Works
               </h2>
               <p className="mt-4 text-zinc-500 text-lg">
-                Three simple steps to never worry about supplies again.
+                Set up once. Stay stocked forever.
               </p>
             </div>
 
             <div className="grid gap-8 sm:grid-cols-3">
-              {[
-                {
-                  step: "01",
-                  title: "Set Up Your Inventory",
-                  description: "Add your supplies with par levels and low-stock thresholds. Import from spreadsheet or add manually.",
-                },
-                {
-                  step: "02",
-                  title: "Cleaners Report",
-                  description: "After each turnover, cleaners count supplies using our mobile app. AI camera makes it instant.",
-                },
-                {
-                  step: "03",
-                  title: "Auto-Restock Magic",
-                  description: "The system automatically deducts from your warehouse and alerts you when supplies are low.",
-                },
-              ].map((item) => (
-                <div key={item.step} className="relative bg-white rounded-2xl p-8 shadow-sm border border-zinc-200 hover:shadow-md transition-shadow">
-                  <div className="text-5xl font-bold text-zinc-200">{item.step}</div>
-                  <h3 className="mt-4 text-xl font-semibold text-zinc-900">{item.title}</h3>
-                  <p className="mt-2 text-zinc-500 leading-relaxed">{item.description}</p>
+              {/* Step 1 */}
+              <div className="relative bg-white rounded-2xl p-8 shadow-sm border border-zinc-200 hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 font-bold">1</div>
+                  <h3 className="text-xl font-semibold text-zinc-900">Add Your Properties</h3>
                 </div>
-              ))}
+                <p className="text-zinc-500 leading-relaxed mb-4">
+                  Enter each rental property and set par levels for supplies. "Beach House needs 12 toilet paper rolls, 6 soap bars..."
+                </p>
+                <div className="flex gap-2">
+                  <div className="flex-1 bg-zinc-50 rounded-lg p-2 border border-zinc-200">
+                    <div className="text-xs text-zinc-400">Property</div>
+                    <div className="text-sm font-medium text-zinc-700">Beach House</div>
+                  </div>
+                  <div className="flex-1 bg-zinc-50 rounded-lg p-2 border border-zinc-200">
+                    <div className="text-xs text-zinc-400">Property</div>
+                    <div className="text-sm font-medium text-zinc-700">Downtown Loft</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 2 */}
+              <div className="relative bg-white rounded-2xl p-8 shadow-sm border border-zinc-200 hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 font-bold">2</div>
+                  <h3 className="text-xl font-semibold text-zinc-900">Cleaners Count</h3>
+                </div>
+                <p className="text-zinc-500 leading-relaxed mb-4">
+                  After each turnover, your cleaner opens the app and counts what's left. Takes 2 minutes. You're notified instantly.
+                </p>
+                <div className="bg-zinc-50 rounded-lg p-3 border border-zinc-200">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-zinc-600">Toilet Paper</span>
+                    <span className="font-medium text-amber-600">4 left</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm mt-2">
+                    <span className="text-zinc-600">Coffee Pods</span>
+                    <span className="font-medium text-emerald-600">12 left</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 3 */}
+              <div className="relative bg-white rounded-2xl p-8 shadow-sm border border-zinc-200 hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 font-bold">3</div>
+                  <h3 className="text-xl font-semibold text-zinc-900">One-Click Restock</h3>
+                </div>
+                <p className="text-zinc-500 leading-relaxed mb-4">
+                  See what's low across all properties. Click once to add everything to your Amazon cart. Done.
+                </p>
+                <div className="bg-emerald-50 rounded-lg p-3 border border-emerald-200">
+                  <div className="flex items-center gap-2 text-emerald-700 text-sm font-medium">
+                    <Package className="h-4 w-4" />
+                    Add 3 items to Amazon Cart
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>

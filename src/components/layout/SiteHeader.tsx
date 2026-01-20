@@ -6,7 +6,7 @@ import { SignedIn, SignedOut, UserButton, useAuth } from "@clerk/nextjs";
 import { useSyncExternalStore } from 'react';
 
 // Version from package.json - imported at build time
-const APP_VERSION = "1.4008";
+const APP_VERSION = "1.4009";
 
 // Check if Clerk is configured
 const emptySubscribe = () => () => {};
