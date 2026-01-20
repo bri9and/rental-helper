@@ -172,13 +172,13 @@ export function CleanerForm({ propertyId, propertyName, ownerId, supplies }: Cle
             const Icon = room.icon;
             const colorClasses = {
               blue: isChecked ? 'border-blue-400 bg-blue-50' : 'border-zinc-200 hover:border-blue-200',
-              orange: isChecked ? 'border-orange-400 bg-orange-50' : 'border-zinc-200 hover:border-orange-200',
+              orange: isChecked ? 'border-zinc-400 bg-zinc-100' : 'border-zinc-200 hover:border-zinc-300',
               purple: isChecked ? 'border-purple-400 bg-purple-50' : 'border-zinc-200 hover:border-purple-200',
               emerald: isChecked ? 'border-emerald-400 bg-emerald-50' : 'border-zinc-200 hover:border-emerald-200',
             };
             const iconColors = {
               blue: isChecked ? 'text-blue-600' : 'text-zinc-400',
-              orange: isChecked ? 'text-orange-600' : 'text-zinc-400',
+              orange: isChecked ? 'text-zinc-700' : 'text-zinc-400',
               purple: isChecked ? 'text-purple-600' : 'text-zinc-400',
               emerald: isChecked ? 'text-emerald-600' : 'text-zinc-400',
             };

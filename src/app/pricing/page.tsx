@@ -1,10 +1,9 @@
 'use client';
 
 import { Check } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
 import { useState } from "react";
 import { useAuth } from "@clerk/nextjs";
+import { SiteHeader } from "@/components/layout/SiteHeader";
 
 const plans = [
   {
@@ -89,24 +88,11 @@ export default function PricingPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="border-b border-zinc-200 bg-white">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link href="/" className="flex items-center gap-2">
-            <Image src="/logo.png" alt="Rental Helper" width={32} height={32} className="h-8 w-8" />
-            <span className="text-xl font-bold text-zinc-900">Rental Helper</span>
-          </Link>
-          <Link
-            href="/sign-in"
-            className="text-sm font-medium text-zinc-600 hover:text-zinc-900 transition-colors"
-          >
-            Sign In
-          </Link>
-        </div>
-      </header>
+      {/* Shared Site Header */}
+      <SiteHeader showPricing={false} />
 
       {/* Pricing Section */}
-      <main className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+      <main className="mx-auto max-w-7xl px-4 pt-24 pb-16 sm:px-6 lg:px-8">
         <div className="text-center">
           <h1 className="text-4xl font-bold text-zinc-900 sm:text-5xl">
             Simple, Transparent Pricing
@@ -121,7 +107,7 @@ export default function PricingPage() {
           {plans.map((plan) => (
             <div
               key={plan.name}
-              className="relative rounded-2xl border border-zinc-200 bg-white p-8 transition-all duration-200 hover:border-emerald-300 hover:shadow-lg"
+              className="relative rounded-2xl border border-zinc-200 bg-white p-8 transition-all duration-200 hover:border-zinc-300 hover:shadow-lg"
             >
 
               <div className="text-center">
@@ -131,7 +117,7 @@ export default function PricingPage() {
                   <span className="text-5xl font-bold text-zinc-900">${plan.price}</span>
                   <span className="text-zinc-600">/month</span>
                 </div>
-                <p className="mt-2 text-sm text-emerald-600">
+                <p className="mt-2 text-sm text-zinc-600">
                   {plan.properties} properties
                 </p>
               </div>
@@ -139,7 +125,7 @@ export default function PricingPage() {
               <ul className="mt-8 space-y-4">
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-center gap-3">
-                    <Check className="h-5 w-5 text-emerald-600 flex-shrink-0" />
+                    <Check className="h-5 w-5 text-zinc-600 flex-shrink-0" />
                     <span className="text-zinc-700">{feature}</span>
                   </li>
                 ))}
@@ -148,7 +134,7 @@ export default function PricingPage() {
               <button
                 onClick={() => handleSubscribe(plan.priceId)}
                 disabled={loading === plan.priceId}
-                className="mt-8 block w-full rounded-lg py-3 text-center font-medium transition-colors disabled:opacity-50 bg-zinc-100 text-zinc-900 hover:bg-emerald-600 hover:text-white"
+                className="mt-8 block w-full rounded-lg py-3 text-center font-medium transition-colors disabled:opacity-50 bg-emerald-600 text-white hover:bg-emerald-700"
               >
                 {loading === plan.priceId ? 'Loading...' : 'Get Started'}
               </button>
@@ -167,7 +153,7 @@ export default function PricingPage() {
             </p>
             <p className="mt-2 text-zinc-500">
               Looking for enterprise features, annual commitment pricing, or managing 25+ properties?{" "}
-              <a href="mailto:sales@rental-helper.com" className="text-emerald-600 hover:text-emerald-700 font-medium">
+              <a href="mailto:sales@rental-helper.com" className="text-zinc-900 hover:underline font-medium">
                 Contact our sales team
               </a>{" "}
               to discuss a package tailored to your needs.

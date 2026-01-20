@@ -7,7 +7,6 @@ import {
   ArrowLeft,
   MapPin,
   Edit,
-  Clock,
   Package,
   ClipboardList,
   Bell,
@@ -23,6 +22,7 @@ import CleaningReport from "@/models/CleaningReport";
 import SupplyRequest from "@/models/SupplyRequest";
 import WarehouseItem from "@/models/WarehouseItem";
 import { getAuthUserId } from "@/lib/auth";
+import { getAmazonUrl } from "@/lib/amazon";
 
 interface PropertyDetailPageProps {
   params: Promise<{ id: string }>;
@@ -279,7 +279,7 @@ export default async function PropertyDetailPage({ params }: PropertyDetailPageP
               <Bell className="h-5 w-5" />
               Supply Requests
               <span className="ml-auto text-sm font-normal">
-                <Link href="/admin/supply-requests" className="text-blue-600 hover:underline">
+                <Link href="/admin/supply-requests" className="text-zinc-600 hover:text-zinc-900">
                   View all →
                 </Link>
               </span>
@@ -300,7 +300,7 @@ export default async function PropertyDetailPage({ params }: PropertyDetailPageP
                     <div className="flex items-center gap-3">
                       {req.status === 'pending' && req.amazonAsin && (
                         <a
-                          href={`https://www.amazon.com/dp/${req.amazonAsin}?qty=${needed}`}
+                          href={getAmazonUrl(req.amazonAsin, needed)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-1 px-2 py-1 rounded bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs font-medium"
@@ -351,7 +351,7 @@ export default async function PropertyDetailPage({ params }: PropertyDetailPageP
                   </Badge>
                   {item.status !== 'good' && item.amazonAsin && (
                     <a
-                      href={`https://www.amazon.com/dp/${item.amazonAsin}?qty=${item.needed}`}
+                      href={getAmazonUrl(item.amazonAsin, item.needed)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-1 px-2 py-1 rounded bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs font-medium"
@@ -374,7 +374,7 @@ export default async function PropertyDetailPage({ params }: PropertyDetailPageP
             <ClipboardList className="h-5 w-5" />
             Recent Cleaning Reports
             <span className="ml-auto text-sm font-normal">
-              <Link href="/admin/reports" className="text-blue-600 hover:underline">
+              <Link href="/admin/reports" className="text-zinc-600 hover:text-zinc-900">
                 View all →
               </Link>
             </span>

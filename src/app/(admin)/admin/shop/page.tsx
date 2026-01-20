@@ -3,9 +3,7 @@
 import { ExternalLink, Package, ShoppingBag, Sparkles, Shirt, Coffee, WashingMachine, Bath, Scroll } from "lucide-react";
 import Image from "next/image";
 import { Card, CardContent } from "@/components/ui";
-
-// Amazon Associate Tag - replace with your tag once approved
-const AMAZON_ASSOCIATE_TAG = "rentalhelper-20";
+import { getAmazonUrl, AMAZON_ASSOCIATE_TAG } from "@/lib/amazon";
 
 type Product = {
   name: string;
@@ -17,12 +15,12 @@ type Product = {
 
 // Category icons for section headers
 const categoryConfig: Record<string, { icon: React.ElementType; iconColor: string }> = {
-  Toiletries: { icon: Bath, iconColor: "text-blue-500 dark:text-blue-400" },
-  Cleaning: { icon: Sparkles, iconColor: "text-purple-500 dark:text-purple-400" },
-  "Paper Products": { icon: Scroll, iconColor: "text-amber-500 dark:text-amber-400" },
-  Linens: { icon: Shirt, iconColor: "text-rose-500 dark:text-rose-400" },
-  Kitchen: { icon: Coffee, iconColor: "text-orange-500 dark:text-orange-400" },
-  Laundry: { icon: WashingMachine, iconColor: "text-cyan-500 dark:text-cyan-400" },
+  Toiletries: { icon: Bath, iconColor: "text-zinc-500" },
+  Cleaning: { icon: Sparkles, iconColor: "text-zinc-500" },
+  "Paper Products": { icon: Scroll, iconColor: "text-zinc-500" },
+  Linens: { icon: Shirt, iconColor: "text-zinc-500" },
+  Kitchen: { icon: Coffee, iconColor: "text-zinc-500" },
+  Laundry: { icon: WashingMachine, iconColor: "text-zinc-500" },
 };
 
 const products: Product[] = [
@@ -183,10 +181,6 @@ const products: Product[] = [
 
 const categories = [...new Set(products.map((p) => p.category))];
 
-function getAmazonAffiliateUrl(asin: string): string {
-  return `https://www.amazon.com/dp/${asin}?tag=${AMAZON_ASSOCIATE_TAG}`;
-}
-
 function getProductImageUrl(asin: string): string {
   return `/products/${asin}.png`;
 }
@@ -234,15 +228,15 @@ export default function ShopSuppliesPage() {
                         {product.description}
                       </p>
                       <div className="mt-2 flex items-center justify-between">
-                        <span className="text-lg font-bold text-emerald-600 dark:text-emerald-500">
+                        <span className="text-lg font-bold text-zinc-900">
                           ${product.price.toFixed(2)}
                         </span>
                       </div>
                       <a
-                        href={getAmazonAffiliateUrl(product.amazonAsin)}
+                        href={getAmazonUrl(product.amazonAsin, 1)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg bg-[#FF9900] px-3 py-2 text-sm font-medium text-zinc-900 hover:bg-[#FFa81a] transition-colors"
+                        className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700 transition-colors"
                       >
                         <Package className="h-4 w-4" />
                         Buy on Amazon

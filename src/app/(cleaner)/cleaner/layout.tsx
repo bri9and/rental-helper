@@ -1,5 +1,4 @@
-import Image from "next/image";
-import Link from "next/link";
+import { SiteHeader } from "@/components/layout/SiteHeader";
 
 export default function CleanerLayout({
   children,
@@ -7,19 +6,17 @@ export default function CleanerLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-white">
-      {/* Mobile Header - Simple and clean */}
-      <header className="sticky top-0 z-40 border-b border-emerald-100 bg-white/80 backdrop-blur-sm">
-        <div className="flex h-14 items-center justify-center px-4">
-          <Link href="/cleaner" className="flex items-center gap-2">
-            <Image src="/logo.png" alt="Rental Helper" width={28} height={28} className="h-7 w-7" />
-            <span className="text-lg font-semibold text-zinc-900">Cleaner Portal</span>
-          </Link>
-        </div>
-      </header>
+    <div className="min-h-screen bg-slate-50">
+      {/* Shared Site Header */}
+      <SiteHeader showPricing={false} />
+
+      {/* Cleaner badge */}
+      <div className="fixed top-16 left-0 right-0 z-30 bg-zinc-100 border-b border-zinc-200 px-4 py-2">
+        <span className="text-xs font-medium text-zinc-600">Cleaner Portal</span>
+      </div>
 
       {/* Main content - Full width, mobile optimized */}
-      <main className="pb-8">{children}</main>
+      <main className="pt-24 pb-8">{children}</main>
     </div>
   );
 }

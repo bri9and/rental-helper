@@ -1,5 +1,4 @@
-import Image from "next/image";
-import Link from "next/link";
+import { SiteHeader } from "@/components/layout/SiteHeader";
 
 export default function StaffLayout({
   children,
@@ -8,21 +7,16 @@ export default function StaffLayout({
 }) {
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Mobile Header */}
-      <header className="sticky top-0 z-40 border-b border-zinc-200 bg-white">
-        <div className="flex h-14 items-center justify-between px-4">
-          <Link href="/staff" className="flex items-center gap-2">
-            <Image src="/logo.png" alt="Rental Helper" width={24} height={24} className="h-6 w-6" />
-            <span className="text-lg font-semibold text-zinc-900">Rental Helper</span>
-          </Link>
-          <span className="rounded-full bg-sky-50 px-3 py-1 text-xs font-medium text-sky-700">
-            Staff
-          </span>
-        </div>
-      </header>
+      {/* Shared Site Header */}
+      <SiteHeader showPricing={false} />
+
+      {/* Staff badge */}
+      <div className="fixed top-16 left-0 right-0 z-30 bg-zinc-100 border-b border-zinc-200 px-4 py-2">
+        <span className="text-xs font-medium text-zinc-600">Staff Portal</span>
+      </div>
 
       {/* Main content - optimized for mobile */}
-      <main className="pb-safe">{children}</main>
+      <main className="pt-24 pb-safe">{children}</main>
     </div>
   );
 }

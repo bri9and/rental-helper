@@ -5,6 +5,7 @@ import Image from "next/image";
 import { MapPin, AlertTriangle, CheckCircle, Package, ShoppingCart, ChevronDown, ChevronUp } from "lucide-react";
 import { Card, CardContent, Button } from "@/components/ui";
 import { PropertyStatus } from "./page";
+import { getAmazonUrl } from "@/lib/amazon";
 
 interface PropertyRestockCardsProps {
   properties: PropertyStatus[];
@@ -138,7 +139,7 @@ function LowItemRow({ item, propertyAddress }: {
 }) {
   const needed = item.parLevel - item.currentCount;
   const amazonUrl = item.amazonAsin
-    ? `https://www.amazon.com/dp/${item.amazonAsin}?qty=${needed}`
+    ? getAmazonUrl(item.amazonAsin, needed)
     : null;
 
   return (

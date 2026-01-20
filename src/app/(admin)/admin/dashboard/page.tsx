@@ -12,6 +12,7 @@ import SupplyRequest from "@/models/SupplyRequest";
 import { getAuthUserId } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { getAmazonUrl } from "@/lib/amazon";
 
 export type PropertyStatus = {
   _id: string;
@@ -279,7 +280,7 @@ export default async function DashboardPage() {
                   <div className="flex items-center gap-3">
                     {req.amazonAsin && (
                       <a
-                        href={`https://www.amazon.com/dp/${req.amazonAsin}?qty=${req.needed}`}
+                        href={getAmazonUrl(req.amazonAsin, req.needed)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-1 px-2 py-1 rounded bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs font-medium"

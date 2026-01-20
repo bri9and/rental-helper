@@ -28,17 +28,17 @@ export default async function SupplyRequestsPage() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-3 gap-4">
-        <Card className="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200 shadow-sm">
+        <Card className="bg-gradient-to-br from-zinc-50 to-slate-50 border-zinc-200 shadow-sm">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center">
-                <Clock className="h-5 w-5 text-amber-600" />
+              <div className="h-10 w-10 rounded-full bg-zinc-100 flex items-center justify-center">
+                <Clock className="h-5 w-5 text-zinc-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-amber-600">
+                <p className="text-2xl font-bold text-zinc-900">
                   {pendingRequests.length}
                 </p>
-                <p className="text-xs font-medium text-amber-700">Pending</p>
+                <p className="text-xs font-medium text-zinc-600">Pending</p>
               </div>
             </div>
           </CardContent>

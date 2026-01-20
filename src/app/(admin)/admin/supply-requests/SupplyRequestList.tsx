@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import {
   Clock,
   Truck,
@@ -11,9 +10,7 @@ import {
   Loader2,
   ChevronDown,
   ChevronUp,
-  MapPin,
   ShoppingCart,
-  ExternalLink,
   Home,
 } from "lucide-react";
 import { Card, CardContent, Button } from "@/components/ui";
@@ -23,17 +20,7 @@ import {
   cancelRequest,
   SupplyRequestSummary,
 } from "@/lib/actions/supply-requests";
-
-function getAmazonUrl(asin: string, qty: number = 1): string {
-  return `https://www.amazon.com/dp/${asin}?qty=${qty}`;
-}
-
-function getAmazonCartUrl(items: { asin: string; qty: number }[]): string {
-  const params = items
-    .map((item, i) => `ASIN.${i + 1}=${item.asin}&Quantity.${i + 1}=${item.qty}`)
-    .join('&');
-  return `https://www.amazon.com/gp/aws/cart/add.html?${params}`;
-}
+import { getAmazonUrl, getAmazonCartUrl } from "@/lib/amazon";
 
 interface SupplyRequestListProps {
   pendingRequests: SupplyRequestSummary[];

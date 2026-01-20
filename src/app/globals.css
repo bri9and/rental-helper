@@ -2,14 +2,14 @@
 
 :root {
   --background: #ffffff; /* pure white */
-  --foreground: #1e293b; /* slate-800 */
+  --foreground: #18181b; /* zinc-900 */
   --surface: #ffffff;
-  --primary: #0ea5e9; /* sky-500 - bright and cheerful */
-  --primary-hover: #0284c7; /* sky-600 */
+  --primary: #059669; /* emerald-600 - fresh green */
+  --primary-hover: #047857; /* emerald-700 */
   --alert: #f43f5e; /* rose-500 */
   --alert-bg: #fef2f2; /* red-50 */
-  --muted: #64748b; /* slate-500 */
-  --border: #e2e8f0; /* slate-200 */
+  --muted: #71717a; /* zinc-500 */
+  --border: #e4e4e7; /* zinc-200 */
 }
 
 @theme inline {
