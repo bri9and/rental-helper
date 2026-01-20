@@ -19,21 +19,21 @@ export default function LandingPage() {
 
           <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:px-8">
             <div className="text-center">
-              <h1 className="text-5xl font-bold tracking-tight text-zinc-900 sm:text-7xl leading-tight">
-                Never Run Out of
-                <span className="block text-zinc-600">
-                  Essentials Again
+              <h1 className="text-5xl font-bold tracking-tight text-zinc-900 sm:text-6xl leading-tight">
+                Your Rentals,
+                <span className="block text-emerald-700">
+                  Always Guest-Ready
                 </span>
               </h1>
 
-              <p className="mx-auto mt-6 max-w-2xl text-xl text-zinc-600 leading-relaxed">
-                The smart inventory system for short-term rental hosts. Track supplies, automate restocking, and keep every property guest-ready.
+              <p className="mx-auto mt-6 max-w-2xl text-lg text-zinc-600 leading-relaxed">
+                Track supplies across all your Airbnb and VRBO properties. Know what's running low before your cleaner arrives. One-click Amazon restocking.
               </p>
 
               <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
                 <Link
                   href="/sign-up"
-                  className="h-12 rounded-lg bg-emerald-600 px-6 text-base font-medium text-white hover:bg-emerald-700 transition-colors flex items-center"
+                  className="h-12 rounded-lg bg-emerald-700 px-6 text-base font-medium text-white hover:bg-emerald-800 transition-colors flex items-center"
                 >
                   Get Started Free
                 </Link>

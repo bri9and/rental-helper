@@ -236,7 +236,7 @@ export default function ShopSuppliesPage() {
                         href={getAmazonUrl(product.amazonAsin, 1)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700 transition-colors"
+                        className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg bg-emerald-700 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-800 transition-colors"
                       >
                         <Package className="h-4 w-4" />
                         Buy on Amazon

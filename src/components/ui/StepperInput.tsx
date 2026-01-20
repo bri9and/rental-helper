@@ -47,7 +47,7 @@ export function StepperInput({
           const newValue = parseInt(e.target.value) || 0;
           onChange(Math.max(min, Math.min(max, newValue)));
         }}
-        className="h-12 w-20 rounded-xl border border-zinc-200 bg-white text-center text-xl font-bold text-zinc-900 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-600"
+        className="h-12 w-20 rounded-xl border border-zinc-200 bg-white text-center text-xl font-bold text-zinc-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700"
         min={min}
         max={max}
       />

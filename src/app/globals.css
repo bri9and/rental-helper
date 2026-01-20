@@ -4,8 +4,8 @@
   --background: #ffffff; /* pure white */
   --foreground: #18181b; /* zinc-900 */
   --surface: #ffffff;
-  --primary: #059669; /* emerald-600 - fresh green */
-  --primary-hover: #047857; /* emerald-700 */
+  --primary: #047857; /* emerald-700 - WCAG AA compliant */
+  --primary-hover: #065F46; /* emerald-800 */
   --alert: #f43f5e; /* rose-500 */
   --alert-bg: #fef2f2; /* red-50 */
   --muted: #71717a; /* zinc-500 */

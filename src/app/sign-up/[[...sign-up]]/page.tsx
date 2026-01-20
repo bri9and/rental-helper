@@ -37,10 +37,10 @@ export default function SignUpPage() {
                 dividerText: 'text-zinc-500',
                 formFieldLabel: 'text-zinc-700',
                 formFieldInput: 'bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400',
-                formButtonPrimary: 'bg-emerald-600 hover:bg-emerald-700',
-                footerActionLink: 'text-emerald-600 hover:text-emerald-700',
+                formButtonPrimary: 'bg-emerald-700 hover:bg-emerald-800',
+                footerActionLink: 'text-emerald-700 hover:text-emerald-800',
                 identityPreviewText: 'text-zinc-900',
-                identityPreviewEditButton: 'text-emerald-600',
+                identityPreviewEditButton: 'text-emerald-700',
               },
             }}
             routing="path"

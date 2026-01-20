@@ -6,7 +6,7 @@ import { SignedIn, SignedOut, UserButton, useAuth } from "@clerk/nextjs";
 import { useSyncExternalStore } from 'react';
 
 // Version from package.json - imported at build time
-const APP_VERSION = "1.4006";
+const APP_VERSION = "1.4008";
 
 // Check if Clerk is configured
 const emptySubscribe = () => () => {};
@@ -77,7 +77,7 @@ export function SiteHeader({ showPricing = true, showDashboard = true, variant =
                 </Link>
                 <Link
                   href="/sign-up"
-                  className="h-9 rounded-lg bg-emerald-600 px-4 text-sm font-medium text-white hover:bg-emerald-700 transition-colors flex items-center"
+                  className="h-9 rounded-lg bg-emerald-700 px-4 text-sm font-medium text-white hover:bg-emerald-800 transition-colors flex items-center"
                 >
                   Get Started
                 </Link>
@@ -86,18 +86,24 @@ export function SiteHeader({ showPricing = true, showDashboard = true, variant =
                 {showDashboard && (
                   <Link
                     href="/admin/dashboard"
-                    className="h-9 rounded-lg bg-emerald-600 px-4 text-sm font-medium text-white hover:bg-emerald-700 transition-colors flex items-center"
+                    className="h-9 rounded-lg bg-emerald-700 px-4 text-sm font-medium text-white hover:bg-emerald-800 transition-colors flex items-center"
                   >
                     Dashboard
                   </Link>
                 )}
-                <UserButton
-                  appearance={{
-                    elements: {
-                      avatarBox: "w-8 h-8 sm:w-9 sm:h-9",
-                    }
-                  }}
-                />
+                <div className="relative">
+                  <UserButton
+                    appearance={{
+                      elements: {
+                        avatarBox: "w-9 h-9 ring-2 ring-transparent hover:ring-emerald-200 transition-all duration-200",
+                        userButtonPopoverCard: "shadow-lg border border-zinc-200 rounded-xl",
+                        userButtonPopoverActions: "p-2",
+                        userButtonPopoverActionButton: "rounded-lg hover:bg-zinc-100 transition-colors",
+                        userButtonPopoverFooter: "hidden",
+                      }
+                    }}
+                  />
+                </div>
               </SignedIn>
             </>
           ) : (
@@ -110,7 +116,7 @@ export function SiteHeader({ showPricing = true, showDashboard = true, variant =
               </Link>
               <Link
                 href="/sign-up"
-                className="h-9 rounded-lg bg-emerald-600 px-4 text-sm font-medium text-white hover:bg-emerald-700 transition-colors flex items-center"
+                className="h-9 rounded-lg bg-emerald-700 px-4 text-sm font-medium text-white hover:bg-emerald-800 transition-colors flex items-center"
               >
                 Get Started
               </Link>

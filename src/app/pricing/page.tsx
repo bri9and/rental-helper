@@ -134,7 +134,7 @@ export default function PricingPage() {
               <button
                 onClick={() => handleSubscribe(plan.priceId)}
                 disabled={loading === plan.priceId}
-                className="mt-8 block w-full rounded-lg py-3 text-center font-medium transition-colors disabled:opacity-50 bg-emerald-600 text-white hover:bg-emerald-700"
+                className="mt-8 block w-full rounded-lg py-3 text-center font-medium transition-colors disabled:opacity-50 bg-emerald-700 text-white hover:bg-emerald-800"
               >
                 {loading === plan.priceId ? 'Loading...' : 'Get Started'}
               </button>
