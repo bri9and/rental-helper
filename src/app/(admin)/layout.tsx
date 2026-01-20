@@ -1,6 +1,7 @@
-import { LayoutDashboard, Home, Settings, ClipboardList, Package, ShoppingCart, Bell } from "lucide-react";
+import { LayoutDashboard, Home, Settings, ClipboardList, Bell } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import packageJson from "../../../package.json";
 
 const navItems = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -79,6 +80,11 @@ export default function AdminLayout({
       <main className="pt-14 pb-20 md:pt-0 md:pb-0 md:pl-64">
         <div className="p-4 md:p-8">{children}</div>
       </main>
+
+      {/* Version number */}
+      <div className="fixed bottom-2 right-2 text-[10px] text-zinc-400 md:bottom-4 md:right-4">
+        v{packageJson.version}
+      </div>
     </div>
   );
 }
