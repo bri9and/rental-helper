@@ -38,7 +38,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: "#047857",
+  themeColor: "#0ea5e9",
 };
 
 export default function RootLayout({
@@ -49,7 +49,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-zinc-50 dark:bg-zinc-950`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white`}
       >
         <ThemeProvider>
           <ClerkProviderWrapper>{children}</ClerkProviderWrapper>

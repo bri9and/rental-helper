@@ -7,7 +7,7 @@ export default function StaffLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-zinc-50">
+    <div className="min-h-screen bg-slate-50">
       {/* Mobile Header */}
       <header className="sticky top-0 z-40 border-b border-zinc-200 bg-white">
         <div className="flex h-14 items-center justify-between px-4">
@@ -15,7 +15,7 @@ export default function StaffLayout({
             <Image src="/logo.png" alt="Rental Helper" width={24} height={24} className="h-6 w-6" />
             <span className="text-lg font-semibold text-zinc-900">Rental Helper</span>
           </Link>
-          <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
+          <span className="rounded-full bg-sky-50 px-3 py-1 text-xs font-medium text-sky-700">
             Staff
           </span>
         </div>
