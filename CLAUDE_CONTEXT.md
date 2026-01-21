@@ -1,7 +1,7 @@
 # Claude Session Coordination
 
 Last updated: 2026-01-20
-Current version: 1.4010
+Current version: 1.4011
 
 ## Project: Rental Helper
 Inventory management system for short-term rental properties.
@@ -88,6 +88,8 @@ src/
 - [x] v1.4010 - Cart preview modal for restock flow
 - [x] v1.4010 - Clickable dashboard stat cards (link to Properties/Supply Requests)
 - [x] v1.4010 - Property cards link to detail page
+- [x] v1.4010 - Stripe products/prices created via CLI (test mode)
+- [x] v1.4011 - Fixed middleware to allow public access to /pricing and /api/stripe/*
 - [x] NAT creative team research for demo experience (see DEMO_PLAN.md)
 
 ---
