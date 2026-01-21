@@ -60,9 +60,11 @@ export async function middleware(request: NextRequest, event: NextFetchEvent) {
 
   const isPublicRoute = createRouteMatcher([
     '/',
+    '/pricing',
     '/sign-in(.*)',
     '/sign-up(.*)',
     '/cleaner(.*)',  // Cleaner routes are public (they use access codes)
+    '/api/stripe/(.*)',  // Stripe webhooks and checkout must be accessible
   ]);
 
   const middleware = clerkMiddleware(async (auth, req) => {
