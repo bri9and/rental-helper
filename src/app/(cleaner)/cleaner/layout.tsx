@@ -1,4 +1,9 @@
 import { SiteHeader } from "@/components/layout/SiteHeader";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Rental Helper - Cleaner",
+};
 
 export default function CleanerLayout({
   children,

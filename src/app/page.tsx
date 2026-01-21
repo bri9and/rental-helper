@@ -1,4 +1,4 @@
-import { Package, Home, ClipboardList, Sparkles, TrendingUp, Bell, CheckCircle2, ArrowRight, Smartphone } from "lucide-react";
+import { Package, Home, ClipboardList, TrendingUp, Bell, CheckCircle2, ArrowRight, Smartphone } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { SiteHeader } from "@/components/layout/SiteHeader";

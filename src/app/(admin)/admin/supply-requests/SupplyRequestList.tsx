@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
   Clock,
@@ -12,6 +12,7 @@ import {
   ChevronUp,
   ShoppingCart,
   Home,
+  RefreshCw,
 } from "lucide-react";
 import { Card, CardContent, Button } from "@/components/ui";
 import {
@@ -20,7 +21,10 @@ import {
   cancelRequest,
   SupplyRequestSummary,
 } from "@/lib/actions/supply-requests";
-import { getAmazonUrl, getAmazonCartUrl } from "@/lib/amazon";
+import { getAmazonCartUrl } from "@/lib/amazon";
+
+// Polling interval in milliseconds (10 seconds for near real-time updates)
+const POLL_INTERVAL = 10000;
 
 interface SupplyRequestListProps {
   pendingRequests: SupplyRequestSummary[];
@@ -279,14 +283,75 @@ export function SupplyRequestList({
 }: SupplyRequestListProps) {
   const router = useRouter();
   const [showCompleted, setShowCompleted] = useState(false);
+  const [isPolling, setIsPolling] = useState(true);
+  const [hasNewData, setHasNewData] = useState(false);
+  const lastKnownCountRef = useRef(pendingRequests.length);
 
-  const handleUpdate = () => router.refresh();
+  const handleUpdate = useCallback(() => {
+    setHasNewData(false);
+    router.refresh();
+  }, [router]);
+
+  // Auto-refresh periodically to get new data
+  // This uses Next.js router.refresh() which re-fetches server components
+  // The server-side data fetching is already authenticated via Clerk
+  useEffect(() => {
+    if (!isPolling) return;
+
+    const refreshData = () => {
+      router.refresh();
+    };
+
+    const intervalId = setInterval(refreshData, POLL_INTERVAL);
+
+    return () => clearInterval(intervalId);
+  }, [isPolling, router]);
+
+  // Track when new data comes in (count changed)
+  useEffect(() => {
+    const currentCount = pendingRequests.length;
+    if (currentCount > lastKnownCountRef.current) {
+      setHasNewData(true);
+      // Auto-clear after 5 seconds
+      const timeout = setTimeout(() => setHasNewData(false), 5000);
+      return () => clearTimeout(timeout);
+    }
+    lastKnownCountRef.current = currentCount;
+  }, [pendingRequests.length]);
 
   const pendingGroups = groupByProperty(pendingRequests);
   const orderedGroups = groupByProperty(orderedRequests);
 
   return (
     <div className="space-y-8">
+      {/* Live Update Indicator */}
+      <div className="flex items-center justify-between text-xs text-zinc-500 bg-zinc-50 rounded-lg px-3 py-2">
+        <div className="flex items-center gap-2">
+          <div className={`h-2 w-2 rounded-full ${isPolling ? 'bg-emerald-500 animate-pulse' : 'bg-zinc-300'}`} />
+          <span>{isPolling ? 'Live updates enabled' : 'Updates paused'}</span>
+          {hasNewData && (
+            <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full font-medium">
+              New data available
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsPolling(!isPolling)}
+            className="text-zinc-500 hover:text-zinc-700"
+          >
+            {isPolling ? 'Pause' : 'Resume'}
+          </button>
+          <button
+            onClick={handleUpdate}
+            className="flex items-center gap-1 text-zinc-500 hover:text-zinc-700"
+          >
+            <RefreshCw className="h-3 w-3" />
+            Refresh
+          </button>
+        </div>
+      </div>
+
       {/* Pending Requests - Grouped by Property */}
       {pendingGroups.length > 0 && (
         <section>

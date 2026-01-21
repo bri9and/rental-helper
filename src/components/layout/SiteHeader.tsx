@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { SignedIn, SignedOut, UserButton, useAuth } from "@clerk/nextjs";
+import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { useSyncExternalStore } from 'react';
 
 // Version from package.json - imported at build time
@@ -33,7 +33,7 @@ interface SiteHeaderProps {
   variant?: 'default' | 'minimal';
 }
 
-export function SiteHeader({ showPricing = true, showDashboard = true, variant = 'default' }: SiteHeaderProps) {
+export function SiteHeader({ showPricing = true, showDashboard = true, variant: _variant = 'default' }: SiteHeaderProps) {
   const isClient = useIsClient();
   const clerkConfigured = isClerkConfigured();
 

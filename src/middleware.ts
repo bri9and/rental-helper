@@ -65,6 +65,7 @@ export async function middleware(request: NextRequest, event: NextFetchEvent) {
     '/sign-up(.*)',
     '/cleaner(.*)',  // Cleaner routes are public (they use access codes)
     '/api/stripe/(.*)',  // Stripe webhooks and checkout must be accessible
+    '/api/debug/(.*)',  // Debug routes for development
   ]);
 
   const middleware = clerkMiddleware(async (auth, req) => {

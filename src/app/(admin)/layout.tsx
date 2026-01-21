@@ -1,6 +1,11 @@
 import { LayoutDashboard, Home, Settings, ClipboardList, Bell } from "lucide-react";
 import Link from "next/link";
 import { SiteHeader } from "@/components/layout/SiteHeader";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Rental Helper - Manager",
+};
 
 const navItems = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },

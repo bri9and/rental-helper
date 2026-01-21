@@ -54,7 +54,7 @@ export async function submitCleaningReport(input: SubmitCleaningReportInput) {
   }
 }
 
-export async function getCleanerProperties(accessCode?: string) {
+export async function getCleanerProperties(_accessCode?: string) {
   await dbConnect();
 
   // For now, return all properties
