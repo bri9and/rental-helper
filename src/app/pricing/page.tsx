@@ -15,7 +15,6 @@ const plans = [
       "Up to 5 properties",
       "Unlimited inventory items",
       "Cleaner mobile app",
-      "AI-powered counting",
       "Email alerts",
       "Basic analytics",
     ],

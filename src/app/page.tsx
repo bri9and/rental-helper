@@ -268,7 +268,6 @@ export default function LandingPage() {
                 </p>
                 <ul className="mt-8 space-y-4">
                   {[
-                    "AI-powered camera counting",
                     "Offline-capable",
                     "Real-time sync",
                     "Push notifications",
