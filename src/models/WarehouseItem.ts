@@ -34,7 +34,7 @@ const WarehouseItemSchema = new Schema<IWarehouseItemDocument>(
   {
     ownerId: { type: String, required: true, index: true },
     name: { type: String, required: true },
-    sku: { type: String, required: true, unique: true },
+    sku: { type: String, required: true },
     quantity: { type: Number, default: 0 },
     parLevel: { type: Number, default: 10 },
     lowStockThreshold: { type: Number, default: 5 },
@@ -46,6 +46,9 @@ const WarehouseItemSchema = new Schema<IWarehouseItemDocument>(
     timestamps: true,
   }
 );
+
+// Compound unique index: each user can only have one item per SKU
+WarehouseItemSchema.index({ ownerId: 1, sku: 1 }, { unique: true });
 
 // Prevent model recompilation error in development
 const WarehouseItem: Model<IWarehouseItemDocument> =
