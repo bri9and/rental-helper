@@ -12,9 +12,14 @@ export async function POST() {
   try {
     await dbConnect();
 
-    const userId = await getAuthUserId();
+    // Try to get authenticated user, or fall back to demo user from env
+    let userId = await getAuthUserId();
     if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      const demoUserId = process.env.DEMO_USER_ID;
+      if (!demoUserId) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+      userId = demoUserId;
     }
 
     // Clear existing data for this user
