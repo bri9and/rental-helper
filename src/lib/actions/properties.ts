@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache';
 import dbConnect from '@/lib/db';
 import Property, { IProperty, IInventorySetting, IRoomConfiguration } from '@/models/Property';
 import WarehouseItem from '@/models/WarehouseItem';
+import SupplyRequest from '@/models/SupplyRequest';
 
 export type PropertyFormData = {
   name: string;
@@ -34,12 +35,23 @@ export async function getProperties(): Promise<IProperty[]> {
   return JSON.parse(JSON.stringify(properties));
 }
 
+export type SupplyRequestInfo = {
+  _id: string;
+  currentCount: number;
+  requestedBy: string;
+  requestedByName?: string;
+  createdAt: string;
+  status: 'pending' | 'ordered' | 'received' | 'cancelled';
+};
+
 export type PropertyItemDetail = {
   sku: string;
   name: string;
   parLevel: number;
   warehouseQty: number;
   image: string;
+  supplyRequest?: SupplyRequestInfo;
+  status: 'ok' | 'needs_order' | 'on_order';
 };
 
 export type PropertyWithItems = {
@@ -47,6 +59,9 @@ export type PropertyWithItems = {
   name: string;
   address?: string;
   items: PropertyItemDetail[];
+  itemsOk: number;
+  itemsNeedOrder: number;
+  itemsOnOrder: number;
 };
 
 // Map SKUs to simple icons/images
@@ -88,21 +103,83 @@ export async function getPropertiesWithItems(): Promise<PropertyWithItems[]> {
   const warehouseItems = await WarehouseItem.find({ ownerId: userId }).lean();
   const itemMap = new Map(warehouseItems.map(i => [i.sku, i]));
 
-  return properties.map(p => ({
-    _id: p._id.toString(),
-    name: p.name,
-    address: p.address,
-    items: (p.inventorySettings || []).map(setting => {
+  // Get all active supply requests (pending or ordered) for user's properties
+  const propertyIds = properties.map(p => p._id);
+  const supplyRequests = await SupplyRequest.find({
+    ownerId: userId,
+    propertyId: { $in: propertyIds },
+    status: { $in: ['pending', 'ordered'] }
+  })
+    .sort({ createdAt: -1 })
+    .lean();
+
+  // Create a map of propertyId -> sku -> most recent supply request
+  const requestMap = new Map<string, Map<string, SupplyRequestInfo>>();
+  for (const req of supplyRequests) {
+    const propKey = req.propertyId.toString();
+    if (!requestMap.has(propKey)) {
+      requestMap.set(propKey, new Map());
+    }
+    const skuMap = requestMap.get(propKey)!;
+    // Only keep the most recent request per SKU per property
+    if (!skuMap.has(req.sku)) {
+      skuMap.set(req.sku, {
+        _id: req._id.toString(),
+        currentCount: req.currentCount,
+        requestedBy: req.requestedBy,
+        requestedByName: req.requestedByName,
+        createdAt: req.createdAt.toISOString(),
+        status: req.status as 'pending' | 'ordered' | 'received' | 'cancelled',
+      });
+    }
+  }
+
+  return properties.map(p => {
+    const propId = p._id.toString();
+    const propRequests = requestMap.get(propId) || new Map();
+
+    let itemsOk = 0;
+    let itemsNeedOrder = 0;
+    let itemsOnOrder = 0;
+
+    const items = (p.inventorySettings || []).map(setting => {
       const item = itemMap.get(setting.itemSku);
+      const supplyRequest = propRequests.get(setting.itemSku);
+
+      let status: 'ok' | 'needs_order' | 'on_order' = 'ok';
+      if (supplyRequest) {
+        if (supplyRequest.status === 'pending') {
+          status = 'needs_order';
+          itemsNeedOrder++;
+        } else if (supplyRequest.status === 'ordered') {
+          status = 'on_order';
+          itemsOnOrder++;
+        }
+      } else {
+        itemsOk++;
+      }
+
       return {
         sku: setting.itemSku,
         name: item?.name || 'Unknown Item',
         parLevel: setting.parLevel,
         warehouseQty: item?.quantity || 0,
         image: getItemImage(setting.itemSku),
+        supplyRequest,
+        status,
       };
-    }),
-  }));
+    });
+
+    return {
+      _id: propId,
+      name: p.name,
+      address: p.address,
+      items,
+      itemsOk,
+      itemsNeedOrder,
+      itemsOnOrder,
+    };
+  });
 }
 
 export async function getProperty(id: string): Promise<IProperty | null> {
