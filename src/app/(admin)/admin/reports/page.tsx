@@ -1,6 +1,9 @@
 export const dynamic = 'force-dynamic';
 
-import { ClipboardCheck, Package, AlertTriangle, Calendar, Bath, UtensilsCrossed, Bed, Sofa, CheckCircle2, User } from "lucide-react";
+import {
+  ClipboardCheck, Package, Calendar, Bath, UtensilsCrossed, Bed, Sofa,
+  CheckCircle2, User, Clock, Truck, CheckCircle, Bell
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, Badge } from "@/components/ui";
 import dbConnect from "@/lib/db";
 import CleaningReport from "@/models/CleaningReport";
@@ -8,7 +11,8 @@ import Property from "@/models/Property";
 import WarehouseItem from "@/models/WarehouseItem";
 import { getAuthUserId } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import Link from "next/link";
+import { getSupplyRequests } from "@/lib/actions/supply-requests";
+import { ReportsTabs } from "./ReportsTabs";
 
 interface ReportItem {
   sku: string;
@@ -23,7 +27,7 @@ interface CleaningChecklist {
   livingSpace: boolean;
 }
 
-interface Report {
+export interface Report {
   _id: string;
   propertyId: string;
   propertyName?: string;
@@ -67,25 +71,26 @@ async function getRecentReports(): Promise<Report[]> {
   })) as Report[];
 }
 
-async function getItemNames(skus: string[]): Promise<Map<string, string>> {
+async function getItemNames(skus: string[]): Promise<Record<string, string>> {
   const userId = await getAuthUserId();
-  if (!userId) return new Map();
+  if (!userId) return {};
 
   const items = await WarehouseItem.find({ ownerId: userId, sku: { $in: skus } })
     .select("sku name")
     .lean();
 
-  return new Map(items.map(i => [i.sku, i.name]));
+  return Object.fromEntries(items.map(i => [i.sku, i.name]));
 }
 
 export default async function ReportsPage() {
   const reports = await getRecentReports();
+  const supplyRequests = await getSupplyRequests();
 
-  // Get all unique SKUs
+  // Get all unique SKUs for item names
   const allSkus = [...new Set(reports.flatMap(r => r.items.map(i => i.sku)))];
   const itemNames = await getItemNames(allSkus);
 
-  // Calculate stats
+  // Calculate cleaning report stats
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const todayReports = reports.filter(r => new Date(r.date) >= today);
@@ -94,179 +99,90 @@ export default async function ReportsPage() {
     0
   );
 
+  // Calculate supply request stats
+  const pendingRequests = supplyRequests.filter((r) => r.status === "pending");
+  const orderedRequests = supplyRequests.filter((r) => r.status === "ordered");
+  const completedRequests = supplyRequests.filter(
+    (r) => r.status === "received" || r.status === "cancelled"
+  );
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-zinc-900">Cleaning Reports</h1>
-        <p className="text-zinc-500">View inventory reports from cleaners</p>
+        <h1 className="text-xl md:text-2xl font-bold text-zinc-900">Reports & Requests</h1>
+        <p className="text-sm text-zinc-500">
+          View cleaning reports and manage supply requests
+        </p>
       </div>
 
-      {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-500">
-              Today's Reports
-            </CardTitle>
-            <Calendar className="h-5 w-5 text-zinc-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-zinc-900">{todayReports.length}</div>
+      {/* Summary Stats - Combined */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <Card className="bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-200">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center">
+                <ClipboardCheck className="h-5 w-5 text-emerald-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-emerald-700">{todayReports.length}</p>
+                <p className="text-xs font-medium text-emerald-600">Today's Cleanings</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-500">
-              Total Reports
-            </CardTitle>
-            <ClipboardCheck className="h-5 w-5 text-zinc-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-zinc-900">{reports.length}</div>
+        <Card className="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center">
+                <Clock className="h-5 w-5 text-amber-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-amber-700">{pendingRequests.length}</p>
+                <p className="text-xs font-medium text-amber-600">Pending Requests</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-zinc-500">
-              Items Restocked
-            </CardTitle>
-            <Package className="h-5 w-5 text-emerald-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-emerald-600">{totalRestocked}</div>
+        <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                <Truck className="h-5 w-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-blue-700">{orderedRequests.length}</p>
+                <p className="text-xs font-medium text-blue-600">On Order</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-zinc-50 to-slate-50 border-zinc-200">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-zinc-100 flex items-center justify-center">
+                <Package className="h-5 w-5 text-zinc-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-zinc-700">{totalRestocked}</p>
+                <p className="text-xs font-medium text-zinc-600">Items Restocked</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Reports List */}
-      {reports.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <ClipboardCheck className="h-12 w-12 text-zinc-300" />
-            <h3 className="mt-4 text-lg font-semibold text-zinc-900">
-              No reports yet
-            </h3>
-            <p className="mt-1 text-zinc-500">
-              Reports will appear here when cleaners submit inventory counts.
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-4">
-          {reports.map((report) => {
-            const totalItems = report.items.length;
-            const totalRestockedInReport = report.items.reduce((s, i) => s + i.restockedAmount, 0);
-            const hasRestocking = totalRestockedInReport > 0;
-            const isCleanerReport = !!report.checklist;
-
-            return (
-              <Card key={report._id} className={hasRestocking ? "border-emerald-200" : isCleanerReport ? "border-emerald-100" : ""}>
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="font-semibold text-zinc-900">{report.propertyName}</h3>
-                      <p className="text-sm text-zinc-500">
-                        {new Date(report.date).toLocaleDateString("en-US", {
-                          weekday: "short",
-                          month: "short",
-                          day: "numeric",
-                          hour: "numeric",
-                          minute: "2-digit",
-                        })}
-                      </p>
-                      {report.cleanerName && (
-                        <p className="text-sm text-zinc-500 flex items-center gap-1 mt-1">
-                          <User className="h-3 w-3" />
-                          {report.cleanerName}
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {isCleanerReport && (
-                        <Badge variant="success">
-                          <CheckCircle2 className="h-3 w-3 mr-1" />
-                          Cleaned
-                        </Badge>
-                      )}
-                      {hasRestocking && (
-                        <Badge variant="success">
-                          +{totalRestockedInReport} restocked
-                        </Badge>
-                      )}
-                      {totalItems > 0 && (
-                        <Badge variant="default">{totalItems} items</Badge>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Cleaning Checklist for cleaner reports */}
-                  {report.checklist && (
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {report.checklist.bathrooms && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
-                          <Bath className="h-3 w-3" /> Bathrooms
-                        </span>
-                      )}
-                      {report.checklist.kitchen && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-700">
-                          <UtensilsCrossed className="h-3 w-3" /> Kitchen
-                        </span>
-                      )}
-                      {report.checklist.bedrooms && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-purple-50 px-3 py-1 text-xs font-medium text-purple-700">
-                          <Bed className="h-3 w-3" /> Bedrooms
-                        </span>
-                      )}
-                      {report.checklist.livingSpace && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
-                          <Sofa className="h-3 w-3" /> Living Space
-                        </span>
-                      )}
-                    </div>
-                  )}
-
-                  {report.notes && (
-                    <p className="mt-3 text-sm text-zinc-600 italic">
-                      "{report.notes}"
-                    </p>
-                  )}
-
-                  {/* Item Details - only show if there are items */}
-                  {report.items.length > 0 && (
-                    <div className="mt-4 border-t border-zinc-100 pt-4">
-                      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                        {report.items.map((item) => (
-                          <div
-                            key={item.sku}
-                            className="flex items-center justify-between rounded-lg bg-zinc-50 px-3 py-2 text-sm"
-                          >
-                            <span className="text-zinc-700">
-                              {itemNames.get(item.sku) ?? item.sku}
-                            </span>
-                            <div className="flex items-center gap-2">
-                              <span className="text-zinc-500">
-                                {item.observedCount}
-                              </span>
-                              {item.restockedAmount > 0 && (
-                                <span className="font-medium text-emerald-600">
-                                  +{item.restockedAmount}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      )}
+      {/* Tabbed Content */}
+      <ReportsTabs
+        reports={JSON.parse(JSON.stringify(reports))}
+        itemNames={itemNames}
+        pendingRequests={pendingRequests}
+        orderedRequests={orderedRequests}
+        completedRequests={completedRequests}
+      />
     </div>
   );
 }
