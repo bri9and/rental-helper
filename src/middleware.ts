@@ -125,6 +125,8 @@ export async function middleware(request: NextRequest, event: NextFetchEvent) {
     '/sign-up(.*)',
     '/cleaner(.*)',
     '/api/stripe/(.*)',
+    '/api/fix-indexes',
+    '/api/fix-asins',
   ]);
 
   // Super-admin routes - require superAdmin role
@@ -137,7 +139,6 @@ export async function middleware(request: NextRequest, event: NextFetchEvent) {
   const isDangerousRoute = createRouteMatcher([
     '/api/cleanup(.*)',
     '/api/debug/(.*)',
-    '/api/seed-demo(.*)',
   ]);
 
   interface SessionClaims {
