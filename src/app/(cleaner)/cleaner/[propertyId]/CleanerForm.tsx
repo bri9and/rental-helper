@@ -14,9 +14,14 @@ import {
   MessageSquare,
   Sparkles,
   ArrowLeft,
+  Wrench,
+  ChevronDown,
+  ChevronUp,
+  AlertTriangle,
 } from "lucide-react";
 import { Card, CardContent, Button } from "@/components/ui";
 import { submitCleaningReport } from "@/lib/actions/cleaner";
+import { MAINTENANCE_CATEGORIES, type IMaintenanceIssue } from "@/lib/maintenance-categories";
 
 interface Supply {
   sku: string;
@@ -51,6 +56,9 @@ export function CleanerForm({ propertyId, propertyName, ownerId, supplies, clean
     livingSpace: false,
   });
   const [lowSupplies, setLowSupplies] = useState<Record<string, boolean>>({});
+  const [maintenanceIssues, setMaintenanceIssues] = useState<Record<string, boolean>>({});
+  const [maintenanceDescriptions, setMaintenanceDescriptions] = useState<Record<string, string>>({});
+  const [showMaintenance, setShowMaintenance] = useState(false);
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -59,6 +67,7 @@ export function CleanerForm({ propertyId, propertyName, ownerId, supplies, clean
   const allRoomsChecked = Object.values(checklist).every(Boolean);
   const checkedCount = Object.values(checklist).filter(Boolean).length;
   const lowSupplyCount = Object.values(lowSupplies).filter(Boolean).length;
+  const maintenanceCount = Object.values(maintenanceIssues).filter(Boolean).length;
 
   const toggleRoom = (roomId: RoomId) => {
     setChecklist(prev => ({ ...prev, [roomId]: !prev[roomId] }));
@@ -66,6 +75,37 @@ export function CleanerForm({ propertyId, propertyName, ownerId, supplies, clean
 
   const toggleSupply = (sku: string) => {
     setLowSupplies(prev => ({ ...prev, [sku]: !prev[sku] }));
+  };
+
+  const toggleMaintenance = (id: string) => {
+    setMaintenanceIssues(prev => ({ ...prev, [id]: !prev[id] }));
+    // Auto-expand if selecting an issue
+    if (!maintenanceIssues[id]) {
+      setShowMaintenance(true);
+    }
+  };
+
+  const setMaintenanceDescription = (id: string, description: string) => {
+    setMaintenanceDescriptions(prev => ({ ...prev, [id]: description }));
+  };
+
+  // Build maintenance issues array for submission
+  const buildMaintenanceIssuesArray = (): IMaintenanceIssue[] => {
+    const issues: IMaintenanceIssue[] = [];
+    for (const [categoryKey, category] of Object.entries(MAINTENANCE_CATEGORIES)) {
+      for (const item of category.items) {
+        if (maintenanceIssues[item.id]) {
+          issues.push({
+            id: item.id,
+            category: categoryKey,
+            item: item.item,
+            description: maintenanceDescriptions[item.id] || undefined,
+            urgent: true,
+          });
+        }
+      }
+    }
+    return issues;
   };
 
   const handleSubmit = async () => {
@@ -76,6 +116,8 @@ export function CleanerForm({ propertyId, propertyName, ownerId, supplies, clean
       .filter(s => lowSupplies[s.sku])
       .map(s => ({ sku: s.sku, name: s.name }));
 
+    const maintenanceIssuesArray = buildMaintenanceIssuesArray();
+
     // Server validates cleanerId and propertyId relationship
     // ownerId, propertyName, cleanerName are looked up server-side
     const result = await submitCleaningReport({
@@ -83,6 +125,7 @@ export function CleanerForm({ propertyId, propertyName, ownerId, supplies, clean
       cleanerId,
       checklist,
       lowSupplies: lowSupplyItems,
+      maintenanceIssues: maintenanceIssuesArray,
       notes: notes.trim() || undefined,
     });
 
@@ -105,6 +148,17 @@ export function CleanerForm({ propertyId, propertyName, ownerId, supplies, clean
         <h2 className="text-2xl font-bold text-zinc-900 mb-2">All Done!</h2>
         <p className="text-zinc-500 mb-2">Thanks, {cleanerName}!</p>
         <p className="text-zinc-500 mb-8">Your cleaning report has been submitted.</p>
+
+        {maintenanceCount > 0 && (
+          <Card className="mb-4 border-red-200 bg-red-50">
+            <CardContent className="p-4">
+              <p className="text-sm text-red-700">
+                <AlertTriangle className="inline h-4 w-4 mr-1" />
+                {maintenanceCount} maintenance issue{maintenanceCount > 1 ? 's' : ''} reported to manager
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
         {lowSupplyCount > 0 && (
           <Card className="mb-6 border-blue-200 bg-blue-50">
@@ -232,6 +286,105 @@ export function CleanerForm({ propertyId, propertyName, ownerId, supplies, clean
           )}
         </div>
       )}
+
+      {/* Maintenance Issues */}
+      <div>
+        <button
+          type="button"
+          onClick={() => setShowMaintenance(!showMaintenance)}
+          className="w-full flex items-center justify-between text-lg font-semibold text-zinc-900 mb-3"
+        >
+          <span className="flex items-center gap-2">
+            <Wrench className="h-5 w-5 text-red-600" />
+            Report Maintenance Issue
+            {maintenanceCount > 0 && (
+              <span className="ml-2 px-2 py-0.5 bg-red-100 text-red-700 text-xs font-medium rounded-full">
+                {maintenanceCount}
+              </span>
+            )}
+          </span>
+          {showMaintenance ? (
+            <ChevronUp className="h-5 w-5 text-zinc-400" />
+          ) : (
+            <ChevronDown className="h-5 w-5 text-zinc-400" />
+          )}
+        </button>
+
+        {showMaintenance && (
+          <Card className="border-red-100">
+            <CardContent className="p-4 space-y-4">
+              <p className="text-sm text-zinc-500">
+                Select any items that need immediate attention
+              </p>
+
+              {Object.entries(MAINTENANCE_CATEGORIES).map(([categoryKey, category]) => (
+                <div key={categoryKey}>
+                  <h4 className="text-sm font-medium text-zinc-700 mb-2">
+                    {category.label}
+                  </h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    {category.items.map((item) => {
+                      const isSelected = maintenanceIssues[item.id];
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => toggleMaintenance(item.id)}
+                          className={`p-3 rounded-xl border-2 text-left text-sm transition-all ${
+                            isSelected
+                              ? 'border-red-400 bg-red-50 text-red-900'
+                              : 'border-zinc-200 hover:border-red-200 text-zinc-700'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className={isSelected ? 'font-medium' : ''}>
+                              {item.item}
+                            </span>
+                            {isSelected && (
+                              <AlertTriangle className="h-4 w-4 text-red-500" />
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+
+              {/* Description for "Other" issues */}
+              {maintenanceIssues['other-other'] && (
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-zinc-700 mb-2">
+                    Describe the issue:
+                  </label>
+                  <textarea
+                    value={maintenanceDescriptions['other-other'] || ''}
+                    onChange={(e) => setMaintenanceDescription('other-other', e.target.value)}
+                    placeholder="Please describe the maintenance issue..."
+                    className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-zinc-900 placeholder:text-zinc-400 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20 resize-none"
+                    rows={2}
+                  />
+                </div>
+              )}
+
+              {maintenanceCount > 0 && (
+                <div className="p-3 bg-red-50 rounded-xl border border-red-200">
+                  <p className="text-sm text-red-700 font-medium">
+                    <AlertTriangle className="inline h-4 w-4 mr-1" />
+                    {maintenanceCount} issue{maintenanceCount > 1 ? 's' : ''} will be reported as urgent
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {!showMaintenance && maintenanceCount > 0 && (
+          <p className="text-sm text-red-600 mt-2 text-center">
+            {maintenanceCount} issue{maintenanceCount > 1 ? 's' : ''} selected
+          </p>
+        )}
+      </div>
 
       {/* Notes */}
       <div>

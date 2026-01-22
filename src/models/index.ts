@@ -4,8 +4,8 @@ export type { IWarehouseItem, IWarehouseItemDocument, IBurnRateEntry } from './W
 export { default as Property } from './Property';
 export type { IProperty, IPropertyDocument, IInventorySetting } from './Property';
 
-export { default as CleaningReport } from './CleaningReport';
-export type { ICleaningReport, ICleaningReportDocument, IReportItem } from './CleaningReport';
+export { default as CleaningReport, MAINTENANCE_CATEGORIES } from './CleaningReport';
+export type { ICleaningReport, ICleaningReportDocument, IReportItem, IMaintenanceIssue } from './CleaningReport';
 
 export { default as Cleaner } from './Cleaner';
 export type { ICleaner, ICleanerDocument } from './Cleaner';

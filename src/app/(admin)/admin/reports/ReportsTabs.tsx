@@ -3,11 +3,12 @@
 import { useState } from "react";
 import {
   ClipboardCheck, Bell, Bath, UtensilsCrossed, Bed, Sofa,
-  CheckCircle2, User
+  CheckCircle2, User, Wrench, AlertTriangle
 } from "lucide-react";
 import { Card, CardContent, Badge } from "@/components/ui";
 import { SupplyRequestList } from "./SupplyRequestList";
 import { SupplyRequestSummary } from "@/lib/actions/supply-requests";
+import { MAINTENANCE_CATEGORIES, type IMaintenanceIssue } from "@/lib/maintenance-categories";
 
 interface ReportItem {
   sku: string;
@@ -31,6 +32,7 @@ interface Report {
   items: ReportItem[];
   notes?: string;
   checklist?: CleaningChecklist;
+  maintenanceIssues?: IMaintenanceIssue[];
   completedAt?: Date;
 }
 
@@ -181,9 +183,10 @@ function CleaningReportsContent({
         const totalRestockedInReport = report.items.reduce((s, i) => s + i.restockedAmount, 0);
         const hasRestocking = totalRestockedInReport > 0;
         const isCleanerReport = !!report.checklist;
+        const hasMaintenance = report.maintenanceIssues && report.maintenanceIssues.length > 0;
 
         return (
-          <Card key={report._id} className={hasRestocking ? "border-emerald-200" : isCleanerReport ? "border-emerald-100" : ""}>
+          <Card key={report._id} className={hasMaintenance ? "border-red-200" : hasRestocking ? "border-emerald-200" : isCleanerReport ? "border-emerald-100" : ""}>
             <CardContent className="p-6">
               <div className="flex items-start justify-between">
                 <div>
@@ -245,6 +248,39 @@ function CleaningReportsContent({
                       <Sofa className="h-3 w-3" /> Living Space
                     </span>
                   )}
+                </div>
+              )}
+
+              {/* Maintenance Issues */}
+              {report.maintenanceIssues && report.maintenanceIssues.length > 0 && (
+                <div className="mt-4 p-3 rounded-lg bg-red-50 border border-red-200">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Wrench className="h-4 w-4 text-red-600" />
+                    <span className="text-sm font-medium text-red-800">
+                      Maintenance Issues Reported
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    {report.maintenanceIssues.map((issue) => {
+                      const categoryInfo = Object.entries(MAINTENANCE_CATEGORIES).find(
+                        ([key]) => key === issue.category
+                      );
+                      const categoryLabel = categoryInfo?.[1].label || issue.category;
+
+                      return (
+                        <div key={issue.id} className="flex items-start gap-2 text-sm">
+                          <AlertTriangle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
+                          <div>
+                            <span className="font-medium text-red-900">{issue.item}</span>
+                            <span className="text-red-600 ml-2">({categoryLabel})</span>
+                            {issue.description && (
+                              <p className="text-red-700 text-xs mt-0.5">&quot;{issue.description}&quot;</p>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
 

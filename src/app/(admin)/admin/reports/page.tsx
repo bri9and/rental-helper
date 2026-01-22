@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import {
   ClipboardCheck, Package, Calendar, Bath, UtensilsCrossed, Bed, Sofa,
-  CheckCircle2, User, Clock, Truck, CheckCircle, Bell
+  CheckCircle2, User, Clock, Truck, CheckCircle, Bell, Wrench
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, Badge } from "@/components/ui";
 import dbConnect from "@/lib/db";
@@ -13,6 +13,7 @@ import { getAuthUserId } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { getSupplyRequests } from "@/lib/actions/supply-requests";
 import { ReportsTabs } from "./ReportsTabs";
+import type { IMaintenanceIssue } from "@/lib/maintenance-categories";
 
 interface ReportItem {
   sku: string;
@@ -36,6 +37,7 @@ export interface Report {
   items: ReportItem[];
   notes?: string;
   checklist?: CleaningChecklist;
+  maintenanceIssues?: IMaintenanceIssue[];
   completedAt?: Date;
 }
 
@@ -106,6 +108,12 @@ export default async function ReportsPage() {
     (r) => r.status === "received" || r.status === "cancelled"
   );
 
+  // Calculate maintenance issue stats
+  const maintenanceCount = reports.reduce(
+    (sum, r) => sum + (r.maintenanceIssues?.length || 0),
+    0
+  );
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -117,7 +125,7 @@ export default async function ReportsPage() {
       </div>
 
       {/* Summary Stats - Combined */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         <Card className="bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-200">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
@@ -169,6 +177,20 @@ export default async function ReportsPage() {
               <div>
                 <p className="text-2xl font-bold text-zinc-700">{totalRestocked}</p>
                 <p className="text-xs font-medium text-zinc-600">Items Restocked</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className={`bg-gradient-to-br ${maintenanceCount > 0 ? 'from-red-50 to-orange-50 border-red-200' : 'from-zinc-50 to-slate-50 border-zinc-200'}`}>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className={`h-10 w-10 rounded-full flex items-center justify-center ${maintenanceCount > 0 ? 'bg-red-100' : 'bg-zinc-100'}`}>
+                <Wrench className={`h-5 w-5 ${maintenanceCount > 0 ? 'text-red-600' : 'text-zinc-600'}`} />
+              </div>
+              <div>
+                <p className={`text-2xl font-bold ${maintenanceCount > 0 ? 'text-red-700' : 'text-zinc-700'}`}>{maintenanceCount}</p>
+                <p className={`text-xs font-medium ${maintenanceCount > 0 ? 'text-red-600' : 'text-zinc-600'}`}>Maintenance</p>
               </div>
             </div>
           </CardContent>

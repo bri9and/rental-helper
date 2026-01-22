@@ -1,4 +1,9 @@
 import mongoose, { Schema, Document, Model, Types } from 'mongoose';
+import type { IMaintenanceIssue } from '@/lib/maintenance-categories';
+
+// Re-export for convenience
+export type { IMaintenanceIssue } from '@/lib/maintenance-categories';
+export { MAINTENANCE_CATEGORIES } from '@/lib/maintenance-categories';
 
 export interface IReportItem {
   sku: string;
@@ -21,6 +26,7 @@ export interface ICleaningReport {
   items: IReportItem[];
   notes?: string;
   checklist?: ICleaningChecklist;
+  maintenanceIssues?: IMaintenanceIssue[];
   completedAt?: Date;
 }
 
@@ -48,6 +54,17 @@ const CleaningChecklistSchema = new Schema<ICleaningChecklist>(
   { _id: false }
 );
 
+const MaintenanceIssueSchema = new Schema<IMaintenanceIssue>(
+  {
+    id: { type: String, required: true },
+    category: { type: String, required: true },
+    item: { type: String, required: true },
+    description: { type: String },
+    urgent: { type: Boolean, default: true },
+  },
+  { _id: false }
+);
+
 const CleaningReportSchema = new Schema<ICleaningReportDocument>(
   {
     propertyId: { type: Schema.Types.ObjectId, ref: 'Property', required: true },
@@ -57,6 +74,7 @@ const CleaningReportSchema = new Schema<ICleaningReportDocument>(
     items: { type: [ReportItemSchema], default: [] },
     notes: { type: String },
     checklist: { type: CleaningChecklistSchema },
+    maintenanceIssues: { type: [MaintenanceIssueSchema], default: [] },
     completedAt: { type: Date },
   },
   {

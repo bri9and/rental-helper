@@ -3,6 +3,7 @@
 import { Types } from "mongoose";
 import dbConnect from "@/lib/db";
 import CleaningReport, { ICleaningChecklist } from "@/models/CleaningReport";
+import type { IMaintenanceIssue } from "@/lib/maintenance-categories";
 import SupplyRequest from "@/models/SupplyRequest";
 import Property from "@/models/Property";
 import Cleaner from "@/models/Cleaner";
@@ -12,6 +13,7 @@ interface SubmitCleaningReportInput {
   cleanerId: string;
   checklist: ICleaningChecklist;
   lowSupplies: { sku: string; name: string }[];
+  maintenanceIssues?: IMaintenanceIssue[];
   notes?: string;
 }
 
@@ -47,6 +49,7 @@ export async function submitCleaningReport(input: SubmitCleaningReportInput) {
       cleanerId: cleaner._id.toString(),
       cleanerName: cleaner.name,
       checklist: input.checklist,
+      maintenanceIssues: input.maintenanceIssues || [],
       notes: input.notes,
       completedAt: new Date(),
       items: [], // No inventory counts in simplified cleaner form

@@ -14,9 +14,11 @@ import {
   Clock,
   User,
   Settings,
+  ShoppingCart,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui";
 import { PropertyWithItems, PropertyItemDetail } from "@/lib/actions/properties";
+import { getAmazonUrl } from "@/lib/amazon";
 
 interface PropertyCardsProps {
   properties: PropertyWithItems[];
@@ -52,6 +54,10 @@ function ItemRow({ item }: { item: PropertyItemDetail }) {
   const timeAgo = item.supplyRequest?.createdAt
     ? formatTimeAgo(new Date(item.supplyRequest.createdAt))
     : null;
+
+  // Calculate how many to buy (par level - current count, or use par level if no request info)
+  const currentCount = item.supplyRequest?.currentCount ?? 0;
+  const neededQty = Math.max(1, item.parLevel - currentCount);
 
   return (
     <div className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
@@ -97,6 +103,20 @@ function ItemRow({ item }: { item: PropertyItemDetail }) {
           </p>
         )}
       </div>
+
+      {/* Buy Button for items needing order */}
+      {item.status === 'needs_order' && item.amazonAsin && (
+        <a
+          href={getAmazonUrl(item.amazonAsin, neededQty)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1 px-2 py-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium transition-colors"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <ShoppingCart className="h-3 w-3" />
+          Buy {neededQty}
+        </a>
+      )}
 
       {/* Status Badge */}
       <StatusBadge status={item.status} />

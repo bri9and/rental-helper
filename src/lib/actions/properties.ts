@@ -50,6 +50,7 @@ export type PropertyItemDetail = {
   parLevel: number;
   warehouseQty: number;
   image: string;
+  amazonAsin?: string;
   supplyRequest?: SupplyRequestInfo;
   status: 'ok' | 'needs_order' | 'on_order';
 };
@@ -165,6 +166,7 @@ export async function getPropertiesWithItems(): Promise<PropertyWithItems[]> {
         parLevel: setting.parLevel,
         warehouseQty: item?.quantity || 0,
         image: getItemImage(setting.itemSku),
+        amazonAsin: item?.amazonAsin,
         supplyRequest,
         status,
       };
