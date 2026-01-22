@@ -4,8 +4,6 @@ const DEV_USER_ID = 'dev_user_123';
 
 function isClerkConfigured() {
   const key = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
-  // Clerk publishable keys are base64 encoded and much longer than placeholders
-  // Real keys look like: pk_test_Y2xr... (50+ chars with base64 content)
   return key &&
     (key.startsWith('pk_test_') || key.startsWith('pk_live_')) &&
     key.length > 40 &&
@@ -13,12 +11,25 @@ function isClerkConfigured() {
 }
 
 /**
- * Get the current user ID, with fallback for development
- * Returns a mock user ID when Clerk is not configured
+ * Get the current user ID
+ *
+ * SECURITY: In production, Clerk MUST be configured.
+ * Dev mode fallback only works in development environment.
  */
 export async function getAuthUserId(): Promise<string | null> {
+  // In production, always require Clerk authentication
+  if (process.env.NODE_ENV === 'production') {
+    if (!isClerkConfigured()) {
+      console.error('CRITICAL: Clerk is not configured in production!');
+      return null; // Never return a mock user in production
+    }
+    const { userId } = await auth();
+    return userId;
+  }
+
+  // Development mode: allow mock user only if Clerk not configured
   if (!isClerkConfigured()) {
-    // Return mock user for development
+    console.warn('DEV MODE: Using mock user ID. Configure Clerk for real authentication.');
     return DEV_USER_ID;
   }
 
@@ -28,7 +39,8 @@ export async function getAuthUserId(): Promise<string | null> {
 
 /**
  * Check if we're in dev mode without Clerk
+ * Only returns true in development environment
  */
 export function isDevMode(): boolean {
-  return !isClerkConfigured();
+  return process.env.NODE_ENV !== 'production' && !isClerkConfigured();
 }

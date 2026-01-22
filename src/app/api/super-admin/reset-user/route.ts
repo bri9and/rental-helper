@@ -1,29 +1,28 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
-import { getAuthUserId } from '@/lib/auth';
+import { requireSuperAdmin } from '@/lib/roles';
 import Property from '@/models/Property';
 import WarehouseItem from '@/models/WarehouseItem';
 import CleaningReport from '@/models/CleaningReport';
 import SupplyRequest from '@/models/SupplyRequest';
 
-// Only these user IDs can access super admin
-const SUPER_ADMIN_IDS = [
-  "user_386HVlYdKRRJsxiIsbOdAKHWUC8", // sebastian.kiely@gmail.com
-];
-
-export async function GET(request: Request) {
-  await dbConnect();
-
-  const currentUserId = await getAuthUserId();
-  if (!currentUserId || !SUPER_ADMIN_IDS.includes(currentUserId)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+// Changed from GET to POST for CSRF protection
+// Destructive operations should never be on GET requests
+export async function POST(request: Request) {
+  try {
+    // Verify super admin access using role-based check
+    await requireSuperAdmin();
+  } catch {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  const { searchParams } = new URL(request.url);
-  const targetUserId = searchParams.get('userId');
+  await dbConnect();
+
+  const body = await request.json();
+  const targetUserId = body.userId;
 
   if (!targetUserId) {
-    return NextResponse.json({ error: 'userId required' }, { status: 400 });
+    return NextResponse.json({ error: 'userId required in request body' }, { status: 400 });
   }
 
   // Get property IDs for target user
@@ -46,4 +45,12 @@ export async function GET(request: Request) {
       reports: deletedReports.deletedCount,
     }
   });
+}
+
+// Block GET requests - destructive operations must use POST
+export async function GET() {
+  return NextResponse.json(
+    { error: 'Method not allowed. Use POST with { userId: "..." } in body.' },
+    { status: 405 }
+  );
 }

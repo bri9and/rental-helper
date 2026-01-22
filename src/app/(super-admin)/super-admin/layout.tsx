@@ -1,13 +1,8 @@
 import { redirect } from "next/navigation";
-import { getAuthUserId } from "@/lib/auth";
+import { isSuperAdmin } from "@/lib/roles";
 import Link from "next/link";
 import Image from "next/image";
 import { Shield, Users, CreditCard, BarChart3, Settings } from "lucide-react";
-
-// Only these user IDs can access super admin
-const SUPER_ADMIN_IDS = [
-  "user_386HVlYdKRRJsxiIsbOdAKHWUC8", // sebastian.kiely@gmail.com
-];
 
 const navItems = [
   { href: "/super-admin", label: "Dashboard", icon: BarChart3 },
@@ -21,9 +16,10 @@ export default async function SuperAdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const userId = await getAuthUserId();
+  // Check if user has superAdmin role (set via Clerk publicMetadata)
+  const hasAccess = await isSuperAdmin();
 
-  if (!userId || !SUPER_ADMIN_IDS.includes(userId)) {
+  if (!hasAccess) {
     redirect("/");
   }
 

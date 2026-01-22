@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 
-import { ArrowLeft, Home, Package, FileText, Bell, Trash2 } from "lucide-react";
+import { ArrowLeft, Home, Package, FileText, Bell } from "lucide-react";
+import { ResetUserButton } from "./ResetUserButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
 import dbConnect from "@/lib/db";
 import Property from "@/models/Property";
@@ -208,13 +209,7 @@ export default async function UserDetailPage({ params }: UserDetailPageProps) {
               <p className="font-medium text-white">Reset User Data</p>
               <p className="text-sm text-zinc-400">Delete all properties, inventory, and reports for this user</p>
             </div>
-            <a
-              href={`/api/super-admin/reset-user?userId=${userId}`}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-sm font-medium"
-            >
-              <Trash2 className="h-4 w-4" />
-              Reset User
-            </a>
+            <ResetUserButton userId={userId} />
           </div>
         </CardContent>
       </Card>
