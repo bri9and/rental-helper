@@ -29,6 +29,8 @@ interface CleanerFormProps {
   propertyName: string;
   ownerId: string;
   supplies: Supply[];
+  cleanerId: string;
+  cleanerName: string; // For display only, server validates from DB
 }
 
 const ROOMS = [
@@ -40,9 +42,8 @@ const ROOMS = [
 
 type RoomId = typeof ROOMS[number]['id'];
 
-export function CleanerForm({ propertyId, propertyName, ownerId, supplies }: CleanerFormProps) {
+export function CleanerForm({ propertyId, propertyName, ownerId, supplies, cleanerId, cleanerName }: CleanerFormProps) {
   const router = useRouter();
-  const [cleanerName, setCleanerName] = useState("");
   const [checklist, setChecklist] = useState<Record<RoomId, boolean>>({
     bathrooms: false,
     kitchen: false,
@@ -68,11 +69,6 @@ export function CleanerForm({ propertyId, propertyName, ownerId, supplies }: Cle
   };
 
   const handleSubmit = async () => {
-    if (!cleanerName.trim()) {
-      setError("Please enter your name");
-      return;
-    }
-
     setLoading(true);
     setError(null);
 
@@ -80,11 +76,11 @@ export function CleanerForm({ propertyId, propertyName, ownerId, supplies }: Cle
       .filter(s => lowSupplies[s.sku])
       .map(s => ({ sku: s.sku, name: s.name }));
 
+    // Server validates cleanerId and propertyId relationship
+    // ownerId, propertyName, cleanerName are looked up server-side
     const result = await submitCleaningReport({
       propertyId,
-      propertyName,
-      ownerId,
-      cleanerName: cleanerName.trim(),
+      cleanerId,
       checklist,
       lowSupplies: lowSupplyItems,
       notes: notes.trim() || undefined,
@@ -143,22 +139,6 @@ export function CleanerForm({ propertyId, propertyName, ownerId, supplies }: Cle
           </CardContent>
         </Card>
       )}
-
-      {/* Cleaner Name */}
-      <Card>
-        <CardContent className="p-4">
-          <label className="block text-sm font-medium text-zinc-700 mb-2">
-            Your Name
-          </label>
-          <input
-            type="text"
-            value={cleanerName}
-            onChange={(e) => setCleanerName(e.target.value)}
-            placeholder="Enter your name"
-            className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-zinc-900 placeholder:text-zinc-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
-          />
-        </CardContent>
-      </Card>
 
       {/* Cleaning Checklist */}
       <div>

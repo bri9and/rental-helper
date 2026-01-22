@@ -1,4 +1,4 @@
-import { LayoutDashboard, Home, Settings, ClipboardList, ShoppingBag } from "lucide-react";
+import { LayoutDashboard, Home, Settings, ClipboardList, ShoppingBag, Users } from "lucide-react";
 import Link from "next/link";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import type { Metadata } from "next";
@@ -11,6 +11,7 @@ const navItems = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/properties", label: "Properties", icon: Home },
   { href: "/admin/reports", label: "Reports", icon: ClipboardList },
+  { href: "/admin/team", label: "Team", icon: Users },
   { href: "/admin/shop", label: "Shop", icon: ShoppingBag },
 ];
 
