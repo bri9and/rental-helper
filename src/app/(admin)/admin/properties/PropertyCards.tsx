@@ -37,7 +37,7 @@ function StatusBadge({ status }: { status: PropertyItemDetail['status'] }) {
       return (
         <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
           <AlertTriangle className="h-3 w-3" />
-          Needs Order
+          Need to Order
         </span>
       );
     case 'on_order':

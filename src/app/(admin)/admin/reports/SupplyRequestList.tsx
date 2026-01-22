@@ -360,7 +360,7 @@ export function SupplyRequestList({
               <Clock className="h-4 w-4 text-zinc-600" />
             </div>
             <h2 className="text-lg font-semibold text-zinc-800">
-              Needs Ordering
+              Need to Order
             </h2>
             <span className="ml-auto text-sm text-zinc-500 font-medium">
               {pendingRequests.length} items across {pendingGroups.length} properties
