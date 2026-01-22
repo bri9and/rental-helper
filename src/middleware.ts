@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest, type NextFetchEvent } from 'next/server';
+import { checkRateLimit, isRateLimitEnabled, type RateLimitType } from '@/lib/rate-limit';
 
 function isClerkConfigured() {
   const key = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
@@ -23,12 +24,43 @@ function getSubdomain(host: string): string | null {
   return null;
 }
 
+function getClientIP(request: NextRequest): string {
+  // Vercel provides the real IP in x-forwarded-for
+  const forwarded = request.headers.get('x-forwarded-for');
+  if (forwarded) {
+    return forwarded.split(',')[0].trim();
+  }
+  // Fallback
+  return request.headers.get('x-real-ip') || '127.0.0.1';
+}
+
+function getRateLimitType(pathname: string): RateLimitType | null {
+  // Sign-up endpoints - strictest limit
+  if (pathname.startsWith('/sign-up') || pathname.startsWith('/api/sign-up')) {
+    return 'signup';
+  }
+  // Auth endpoints - strict limit
+  if (pathname.startsWith('/sign-in') || pathname.startsWith('/api/sign-in')) {
+    return 'auth';
+  }
+  // Super-admin API - strict limit
+  if (pathname.startsWith('/api/super-admin')) {
+    return 'strict';
+  }
+  // All other API endpoints
+  if (pathname.startsWith('/api/')) {
+    return 'api';
+  }
+  // No rate limiting for pages
+  return null;
+}
+
 export async function middleware(request: NextRequest, event: NextFetchEvent) {
   const host = request.headers.get('host') || '';
   const subdomain = getSubdomain(host);
   const { pathname } = request.nextUrl;
 
-  // Handle subdomain routing
+  // Handle subdomain routing first
   if (subdomain === 'cleaner') {
     if (!pathname.startsWith('/cleaner') && !pathname.startsWith('/_next') && !pathname.startsWith('/api')) {
       const url = request.nextUrl.clone();
@@ -43,11 +75,37 @@ export async function middleware(request: NextRequest, event: NextFetchEvent) {
     }
   }
 
+  // Rate limiting check (only in production and if Upstash is configured)
+  if (process.env.NODE_ENV === 'production' && isRateLimitEnabled()) {
+    const rateLimitType = getRateLimitType(pathname);
+
+    if (rateLimitType) {
+      const ip = getClientIP(request);
+      const result = await checkRateLimit(rateLimitType, ip);
+
+      if (!result.success) {
+        return NextResponse.json(
+          {
+            error: 'Too many requests',
+            message: 'Please slow down and try again later',
+            retryAfter: result.reset ? Math.ceil((result.reset - Date.now()) / 1000) : 60,
+          },
+          {
+            status: 429,
+            headers: {
+              'Retry-After': String(result.reset ? Math.ceil((result.reset - Date.now()) / 1000) : 60),
+              'X-RateLimit-Remaining': String(result.remaining || 0),
+            },
+          }
+        );
+      }
+    }
+  }
+
   // Skip Clerk middleware if not configured (development without Clerk)
   if (!isClerkConfigured()) {
     // In production, Clerk MUST be configured - block access to protected routes
     if (process.env.NODE_ENV === 'production') {
-      // Allow only truly public routes without Clerk
       const trulyPublicPaths = ['/', '/pricing', '/offline'];
       if (!trulyPublicPaths.includes(pathname) && !pathname.startsWith('/_next')) {
         return NextResponse.redirect(new URL('/', request.url));
@@ -89,8 +147,6 @@ export async function middleware(request: NextRequest, event: NextFetchEvent) {
   }
 
   const middleware = clerkMiddleware(async (auth, req) => {
-    const reqPathname = req.nextUrl.pathname;
-
     // Block dangerous routes in production
     if (isDangerousRoute(req) && process.env.NODE_ENV === 'production') {
       return NextResponse.json(
@@ -116,7 +172,6 @@ export async function middleware(request: NextRequest, event: NextFetchEvent) {
       // Must have superAdmin role in metadata
       const userRole = sessionClaims?.metadata?.role;
       if (userRole !== 'superAdmin') {
-        // Redirect non-super-admins to home
         return NextResponse.redirect(new URL('/', req.url));
       }
     }
