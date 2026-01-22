@@ -3,12 +3,13 @@
 import { getAuthUserId } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 import dbConnect from '@/lib/db';
-import Property, { IProperty, IInventorySetting } from '@/models/Property';
+import Property, { IProperty, IInventorySetting, IRoomConfiguration } from '@/models/Property';
 import WarehouseItem from '@/models/WarehouseItem';
 
 export type PropertyFormData = {
   name: string;
   address?: string;
+  rooms?: IRoomConfiguration;
   inventorySettings: IInventorySetting[];
 };
 

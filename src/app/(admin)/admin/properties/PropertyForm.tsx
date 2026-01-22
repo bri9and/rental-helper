@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Bed, Bath, ChefHat, Sofa, UtensilsCrossed, WashingMachine, Car, TreePine, Minus } from "lucide-react";
 import {
   Card,
   CardHeader,
@@ -13,8 +13,32 @@ import {
   Label
 } from "@/components/ui";
 import { createProperty, updateProperty, PropertyFormData } from "@/lib/actions/properties";
-import { IProperty, IInventorySetting } from "@/models/Property";
+import { IProperty, IInventorySetting, IRoomConfiguration } from "@/models/Property";
 import { IWarehouseItem } from "@/models/WarehouseItem";
+
+const defaultRooms: IRoomConfiguration = {
+  bedrooms: 1,
+  bathrooms: 1,
+  halfBathrooms: 0,
+  kitchens: 1,
+  livingRooms: 1,
+  diningRooms: 0,
+  laundryRooms: 0,
+  garages: 0,
+  outdoorSpaces: 0,
+};
+
+const roomConfig = [
+  { key: 'bedrooms', label: 'Bedrooms', icon: Bed, color: 'text-purple-600' },
+  { key: 'bathrooms', label: 'Full Baths', icon: Bath, color: 'text-blue-600' },
+  { key: 'halfBathrooms', label: 'Half Baths', icon: Bath, color: 'text-blue-400' },
+  { key: 'kitchens', label: 'Kitchens', icon: ChefHat, color: 'text-orange-600' },
+  { key: 'livingRooms', label: 'Living Rooms', icon: Sofa, color: 'text-emerald-600' },
+  { key: 'diningRooms', label: 'Dining Rooms', icon: UtensilsCrossed, color: 'text-amber-600' },
+  { key: 'laundryRooms', label: 'Laundry', icon: WashingMachine, color: 'text-cyan-600' },
+  { key: 'garages', label: 'Garages', icon: Car, color: 'text-zinc-600' },
+  { key: 'outdoorSpaces', label: 'Outdoor', icon: TreePine, color: 'text-green-600' },
+] as const;
 
 interface PropertyFormProps {
   property?: IProperty & { _id: string };
@@ -25,11 +49,21 @@ export function PropertyForm({ property, availableItems }: PropertyFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [rooms, setRooms] = useState<IRoomConfiguration>(
+    property?.rooms ?? defaultRooms
+  );
   const [inventorySettings, setInventorySettings] = useState<IInventorySetting[]>(
     property?.inventorySettings ?? []
   );
 
   const isEditing = !!property;
+
+  const handleRoomChange = (key: keyof IRoomConfiguration, delta: number) => {
+    setRooms(prev => ({
+      ...prev,
+      [key]: Math.max(0, prev[key] + delta)
+    }));
+  };
 
   const handleAddItem = () => {
     if (availableItems.length === 0) return;
@@ -69,6 +103,7 @@ export function PropertyForm({ property, availableItems }: PropertyFormProps) {
     const data: PropertyFormData = {
       name: formData.get("name") as string,
       address: (formData.get("address") as string) || undefined,
+      rooms,
       inventorySettings,
     };
 
@@ -119,6 +154,48 @@ export function PropertyForm({ property, availableItems }: PropertyFormProps) {
                 placeholder="e.g., 123 Main St, City, State"
                 defaultValue={property?.address}
               />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Room Configuration */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Room Configuration</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-3 gap-3">
+              {roomConfig.map(({ key, label, icon: Icon, color }) => (
+                <div
+                  key={key}
+                  className="flex items-center justify-between rounded-lg border border-zinc-200 p-3"
+                >
+                  <div className="flex items-center gap-2">
+                    <Icon className={`h-5 w-5 ${color}`} />
+                    <span className="text-sm font-medium text-zinc-700">{label}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => handleRoomChange(key, -1)}
+                      disabled={rooms[key] === 0}
+                      className="flex h-7 w-7 items-center justify-center rounded-full bg-zinc-100 text-zinc-600 hover:bg-zinc-200 disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      <Minus className="h-4 w-4" />
+                    </button>
+                    <span className="w-8 text-center font-semibold text-zinc-900">
+                      {rooms[key]}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleRoomChange(key, 1)}
+                      className="flex h-7 w-7 items-center justify-center rounded-full bg-zinc-100 text-zinc-600 hover:bg-zinc-200"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
