@@ -1,0 +1,174 @@
+{
+  "source": "Amazon Wishlist - STR Items",
+  "extracted": "2026-01-23",
+  "products": [
+    {
+      "name": "Amazon Basics Dish Soap, Fresh Scent, 30 fl oz, Pack of 4",
+      "sku": "DISH-AB-4",
+      "amazonAsin": "B09B1T3ZF7",
+      "price": 12.69,
+      "category": "kitchen"
+    },
+    {
+      "name": "MR.SIGA Non-Scratch Cellulose Scrub Sponge, 12 Pack",
+      "sku": "SPONGE-12",
+      "amazonAsin": "B082W29G1C",
+      "price": 12.34,
+      "category": "kitchen"
+    },
+    {
+      "name": "Dove Body Wash with Pump Deep Moisture, 30.6 Fl Oz (Pack of 3)",
+      "sku": "WASH-DOVE-3",
+      "amazonAsin": "B0BVBZPX9B",
+      "price": 32.01,
+      "category": "bathroom"
+    },
+    {
+      "name": "Pantene Shampoo & Conditioner Set, Daily Moisture Renewal, 26.4 Fl Oz (Pack of 2)",
+      "sku": "SHAMP-PANT-SET",
+      "amazonAsin": "B09GV3RGW2",
+      "price": 20.83,
+      "category": "bathroom"
+    },
+    {
+      "name": "Amazon Basics FSC-Certified 2-Ply Paper Towels, 150 Sheets, 12 Rolls",
+      "sku": "PTOWEL-AB-12",
+      "amazonAsin": "B09BWFX1L6",
+      "price": 22.49,
+      "category": "kitchen"
+    },
+    {
+      "name": "Febreze Air Mist Heavy Duty Crisp Clean, 8.8oz (Pack of 6)",
+      "sku": "FRESH-FEB-6",
+      "amazonAsin": "B075SKWKCD",
+      "price": 22.62,
+      "category": "cleaning"
+    },
+    {
+      "name": "Swiffer Dusters Refills, 10 ct",
+      "sku": "DUST-SWIF-10",
+      "amazonAsin": "B0014D3OBO",
+      "price": 7.99,
+      "category": "cleaning"
+    },
+    {
+      "name": "Swiffer Sweeper Dry Sweeping Pad, Febreze Lavender, 32 count",
+      "sku": "MOP-DRY-32",
+      "amazonAsin": "B001TSLXEE",
+      "price": 8.94,
+      "category": "cleaning"
+    },
+    {
+      "name": "Swiffer Sweeper Wet Mopping Cloths, Open-Window Fresh, 24 Count",
+      "sku": "MOP-WET-24",
+      "amazonAsin": "B00HZ6WFZA",
+      "price": 7.99,
+      "category": "cleaning"
+    },
+    {
+      "name": "Windex Glass and Window Cleaner Spray, Original Blue, 23 Fl Oz",
+      "sku": "GLASS-WIND",
+      "amazonAsin": "B0CF3BDBL2",
+      "price": 2.87,
+      "category": "cleaning"
+    },
+    {
+      "name": "Clorox Disinfecting All-Purpose Cleaner 32 Oz + Bathroom Cleaner 30 Oz, Pack of 3",
+      "sku": "CLEAN-CLX-3",
+      "amazonAsin": "B09PZLN5ZF",
+      "price": 10.25,
+      "category": "cleaning"
+    },
+    {
+      "name": "CLOROX Toilet Bowl Cleaner Clinging Bleach Gel, Ocean Mist, 24 Fl Oz, Pack of 2",
+      "sku": "TOILET-CLX-2",
+      "amazonAsin": "B00W5D1MDE",
+      "price": 4.98,
+      "category": "bathroom"
+    },
+    {
+      "name": "Mrs. Meyer's Clean Day All-Purpose Cleaner Spray, Rain Water, 16 fl oz, Pack of 3",
+      "sku": "CLEAN-MEY-3",
+      "amazonAsin": "B0C37QZ4GH",
+      "price": 13.62,
+      "category": "cleaning"
+    },
+    {
+      "name": "Amazon Solimo Coffee Pods, Assorted (French, Dark, Colombian), 100 Count",
+      "sku": "COFFEE-SOL-100",
+      "amazonAsin": "B07P23H371",
+      "price": 37.49,
+      "category": "kitchen"
+    },
+    {
+      "name": "Cascade Platinum Plus Dishwasher Pods, Lemon, 57 Count",
+      "sku": "DISHPOD-CAS-57",
+      "amazonAsin": "B0DPLMTPFN",
+      "price": 19.99,
+      "category": "kitchen"
+    },
+    {
+      "name": "Charmount 1.2 Gallon Small Trash Bags, 200 Count",
+      "sku": "TRASH-SM-200",
+      "amazonAsin": "B0BWR8Z4B2",
+      "price": 12.99,
+      "category": "cleaning"
+    },
+    {
+      "name": "Bounce Fabric Softener Sheets, Outdoor Fresh, 240 Count",
+      "sku": "DRYER-BOU-240",
+      "amazonAsin": "B003FULBQ4",
+      "price": 7.99,
+      "category": "cleaning"
+    },
+    {
+      "name": "Tide PODS Laundry Detergent, Spring Meadow, 76 Count",
+      "sku": "LAUNDRY-TIDE-76",
+      "amazonAsin": "B0BJMNHLXZ",
+      "price": 15.95,
+      "category": "cleaning"
+    },
+    {
+      "name": "Amazon Basics AAA Alkaline Batteries, 36 Count",
+      "sku": "BATT-AAA-36",
+      "amazonAsin": "B00LH3DMUO",
+      "price": 11.23,
+      "category": "safety"
+    },
+    {
+      "name": "Amazon Basics AA Alkaline Batteries, 20-Pack",
+      "sku": "BATT-AA-20",
+      "amazonAsin": "B00NTCH52W",
+      "price": 9.99,
+      "category": "safety"
+    },
+    {
+      "name": "Puffs Plus Lotion Facial Tissues, 10 Cubes, 56 Tissues Per Box",
+      "sku": "TISSUE-PUFF-10",
+      "amazonAsin": "B09YLMRM4Y",
+      "price": 16.85,
+      "category": "bathroom"
+    },
+    {
+      "name": "Scott Professional 100% Recycled Toilet Paper, 80 Rolls (473 Sheets each)",
+      "sku": "TP-SCOTT-80",
+      "amazonAsin": "B008I7TNDW",
+      "price": 49.24,
+      "category": "bathroom"
+    },
+    {
+      "name": "55-60 Gallon Trash Bags Heavy Duty 2.1 Mil, 100 Count",
+      "sku": "TRASH-HD-100",
+      "amazonAsin": "B0D5M5P6QR",
+      "price": 42.99,
+      "category": "cleaning"
+    },
+    {
+      "name": "Amazon Basics Scented Trash Bags, 13 Gallon, Clean Fresh, 200 Count",
+      "sku": "TRASH-AB-200",
+      "amazonAsin": "B09CD6QTPH",
+      "price": 17.98,
+      "category": "kitchen"
+    }
+  ]
+}
