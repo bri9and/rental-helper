@@ -125,9 +125,6 @@ export async function middleware(request: NextRequest, event: NextFetchEvent) {
     '/sign-up(.*)',
     '/cleaner(.*)',
     '/api/stripe/(.*)',
-    '/api/fix-indexes',
-    '/api/fix-asins',
-    '/api/seed-demo',
   ]);
 
   // Super-admin routes - require superAdmin role
