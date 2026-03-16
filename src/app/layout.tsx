@@ -55,6 +55,7 @@ export default function RootLayout({
           <ClerkProviderWrapper>{children}</ClerkProviderWrapper>
         </ThemeProvider>
         <ServiceWorkerRegistration />
+        <span style={{ position: 'fixed', top: 8, right: 12, fontSize: 11, color: 'rgba(4,120,87,0.35)', zIndex: 9999, fontFamily: 'monospace', pointerEvents: 'none' }}>v2.0</span>
       </body>
     </html>
   );
